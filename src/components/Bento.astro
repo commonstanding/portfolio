@@ -1,0 +1,247 @@
+---
+// TIER 3: PATTERN — Bento canvas primitive
+// Implements docs/spec-bento.md: flat 12-of-12 canvas, row-unit strategy,
+// data-driven cells, crop/card/mask finishes, scoped gutter density.
+//
+// Cells are a frontmatter data array (spec §5). Card cells receive their
+// content via a named slot: slot name = `cell-<index>` (index = position in
+// the cells array). Mask cells share one image via the `image` prop; exactly
+// one mask cell carries `alt` (spec §8).
+//
+// Gates (spec §12): total cell area = columns × rows; no literal gap values;
+// mask math derives from declared track counts; flush dissolves at ≤640px.
+export interface BentoCell {
+  /** Inclusive column range on the 12-col substrate, e.g. [1, 3] */
+  c: [number, number];
+  /** Inclusive row range, e.g. [2, 3] */
+  r: [number, number];
+  /** Surface finish (spec §7). Default: crop for image cells, card otherwise. */
+  finish?: 'crop' | 'card' | 'mask';
+  /** Corners set to radius 0 (1=TL, 2=TR, 3=BR, 4=BL) */
+  r0?: number[];
+  /** Circle finish: radius max (true circle under the square unit) */
+  circle?: boolean;
+  /** Mask cells: exactly one carries the alt */
+  alt?: string;
+  /** Crop cells: image source */
+  src?: string;
+  /** Extra class for surface variants (e.g. brand/inverse card) */
+  class?: string;
+}
+
+interface Props {
+  /** Row count for this canvas (columns are global: 12) */
+  rows: number;
+  /** Row unit ratio: row height = column width × ratio. Default 1 (square). */
+  ratio?: number;
+  /** Gutter density (spec §7). Sets --grid-gutter from the named alias. */
+  density?: 'flush' | 'separated' | 'dense';
+  /** Shared image for mask-finish cells */
+  image?: string;
+  cells: BentoCell[];
+  class?: string;
+  ariaLabel?: string;
+}
+
+const {
+  rows,
+  ratio = 1,
+  density = 'separated',
+  image,
+  cells,
+  class: className,
+  ariaLabel,
+} = Astro.props;
+
+const COLUMNS = 12; // spec §2: flat 12-of-12, single coordinate system
+
+const densityAlias: Record<string, string> = {
+  flush: 'var(--grid-gutter-flush)',
+  separated: 'var(--grid-gutter-separated)',
+  dense: 'var(--grid-gutter-dense)',
+};
+
+// Mask offset math (spec §8) — derived from declared track counts only.
+function maskVars(cell: BentoCell) {
+  const maskCols = cell.c[1] - cell.c[0] + 1;
+  const maskRows = cell.r[1] - cell.r[0] + 1;
+  const maskX = cell.c[0] - 1;
+  const maskY = cell.r[0] - 1;
+  return `--mask-cols: ${maskCols}; --mask-rows: ${maskRows}; --mask-x: ${maskX}; --mask-y: ${maskY};`;
+}
+
+// Per-corner radii: default --bento-radius-cell; r0 corners collapse to 0.
+function radiusVars(cell: BentoCell) {
+  const r0 = cell.r0 ?? [];
+  return [1, 2, 3, 4]
+    .map((n) => `--r${n}: ${r0.includes(n) ? 0 : 'var(--bento-radius-cell)'};`)
+    .join(' ');
+}
+---
+
+<section
+  class:list={['bento', className]}
+  style={`--bento-rows: ${rows}; --bento-unit-ratio: ${ratio}; --grid-gutter: ${densityAlias[density]};`}
+  aria-label={ariaLabel}
+>
+  {
+    cells.map((cell, i) => {
+      const finish = cell.finish ?? (cell.src || image ? 'crop' : 'card');
+      return (
+        <div
+          class:list={[
+            'bento__cell',
+            `bento__cell--${finish}`,
+            { 'bento__cell--circle': cell.circle },
+            cell.class,
+          ]}
+          style={`grid-column: ${cell.c[0]} / ${cell.c[1] + 1}; grid-row: ${cell.r[0]} / ${cell.r[1] + 1}; ${finish === 'mask' ? maskVars(cell) : ''} ${radiusVars(cell)}`}
+        >
+          {finish === 'mask' && image && (
+            <img
+              src={image}
+              alt={cell.alt ?? ''}
+              aria-hidden={cell.alt ? undefined : 'true'}
+              loading="eager"
+              fetchpriority={i === 0 ? 'high' : undefined}
+            />
+          )}
+          {finish === 'crop' && cell.src && (
+            <img src={cell.src} alt={cell.alt ?? ''} loading="lazy" />
+          )}
+        </div>
+      );
+    })
+  }
+  {
+    /* Card content: Astro requires static slot names, so card content is
+       rendered as sibling .bento__card-slot elements placed on the same
+       grid area as their cell. Each card cell's slot is emitted explicitly
+       (static names) — the page passes slot="cell-N" for each card cell. */
+    cells.map((cell, i) => {
+      const finish = cell.finish ?? (cell.src || image ? 'crop' : 'card');
+      if (finish !== 'card') return null;
+      const name = `cell-${i}`;
+      return (
+        <div
+          class="bento__card-slot"
+          style={`grid-column: ${cell.c[0]} / ${cell.c[1] + 1}; grid-row: ${cell.r[0]} / ${cell.r[1] + 1};`}
+        >
+          {name === 'cell-0' && <slot name="cell-0" />}
+          {name === 'cell-1' && <slot name="cell-1" />}
+          {name === 'cell-2' && <slot name="cell-2" />}
+          {name === 'cell-3' && <slot name="cell-3" />}
+          {name === 'cell-4' && <slot name="cell-4" />}
+          {name === 'cell-5' && <slot name="cell-5" />}
+          {name === 'cell-6' && <slot name="cell-6" />}
+          {name === 'cell-7' && <slot name="cell-7" />}
+          {name === 'cell-8' && <slot name="cell-8" />}
+          {name === 'cell-9' && <slot name="cell-9" />}
+          {name === 'cell-10' && <slot name="cell-10" />}
+          {name === 'cell-11' && <slot name="cell-11" />}
+        </div>
+      );
+    })
+  }
+</section>
+
+<style>
+  .bento {
+    display: grid;
+    /* Flat 12-of-12 canvas (spec §2) */
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: repeat(var(--bento-rows), 1fr);
+    /* Row-unit strategy (spec §3): aspect-ratio gives the 1fr rows a
+       definite block size. grid-auto-rows with % collapses — do not use. */
+    aspect-ratio: 12 / calc(var(--bento-rows) * var(--bento-unit-ratio));
+    gap: var(--grid-gutter); /* density consumed via scoped token only */
+  }
+
+  .bento__cell {
+    position: relative;
+    overflow: hidden; /* the clip: cell bounds + radius = the mask */
+    border-radius: var(--r1, var(--bento-radius-cell))
+      var(--r2, var(--bento-radius-cell)) var(--r3, var(--bento-radius-cell))
+      var(--r4, var(--bento-radius-cell));
+  }
+
+  /* Circle finish (spec §7): radius max. True circle under the square unit. */
+  .bento__cell--circle {
+    border-radius: var(--bento-radius-max);
+  }
+
+  /* ---- crop finish: image fills the cell, inset hover only ---- */
+  .bento__cell--crop img {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    transition: transform var(--global-duration-normal) var(--global-ease-out);
+  }
+
+  .bento__cell--crop:hover img {
+    transform: scale(1.04);
+  }
+
+  /* ---- mask finish: window onto the shared canvas-sized image ---- */
+  .bento__cell--mask img {
+    position: absolute;
+    /* Image spans the whole canvas (spec §8). As a fraction of the CELL:
+       width  = (12 / maskCols) × 100%   (12 canvas cols)
+       height = (rows / maskRows) × 100% (canvas rows)
+       Offset per grid unit = 100% / maskCols (x) or / maskRows (y). */
+    inline-size: calc(100% * 12 / var(--mask-cols));
+    block-size: calc(100% * var(--bento-rows) / var(--mask-rows));
+    max-inline-size: none;
+    left: calc(var(--mask-x) / var(--mask-cols) * -100%);
+    top: calc(var(--mask-y) / var(--mask-rows) * -100%);
+    object-fit: cover;
+    object-position: center;
+    transition: transform var(--global-duration-normal) var(--global-ease-out);
+  }
+
+  .bento__cell--mask:hover img {
+    transform: scale(1.03);
+  }
+
+  /* ---- card finish: solid surface, content via sibling slot ----
+     Astro requires static slot names, so card content is rendered as a
+     sibling .bento__card-slot placed on the same grid area as its cell.
+     The slot wrapper carries the surface styling hooks via the cell's
+     class (passed through on the slot wrapper too). */
+  .bento__card-slot {
+    position: relative;
+    border-radius: var(--r1, var(--bento-radius-cell))
+      var(--r2, var(--bento-radius-cell)) var(--r3, var(--bento-radius-cell))
+      var(--r4, var(--bento-radius-cell));
+  }
+
+  .bento__card-slot > :global(*) {
+    block-size: 100%;
+  }
+
+  /* ---- Responsive: mobile dissolution (spec §10) ----
+     Single-column flow at ≤640px: flush dissolves to separated; the mask
+     offset math breaks (all windows would show the same region), so masks
+     revert to independent full-bleed crops. */
+  @media (max-width: 640px) {
+    .bento {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: none;
+      grid-auto-rows: minmax(8rem, auto);
+      aspect-ratio: auto;
+      --grid-gutter: var(--grid-gutter-dense);
+    }
+
+    .bento__cell {
+      grid-column: 1 / -1 !important;
+      grid-row: auto !important;
+    }
+
+    .bento__cell--mask img {
+      position: static;
+      inline-size: 100%;
+      block-size: 100%;
+    }
+  }
+</style>

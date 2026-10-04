@@ -1,0 +1,71 @@
+---
+// TIER 2: BASE COMPONENT — Input
+// Pure primitive: no imports, no nested components. All styling
+// maps to semantic tokens from tokens.css.
+interface Props {
+  name: string;
+  label: string;
+  type?: astroHTML.JSX.HTMLInputTypeAttribute;
+  placeholder?: string;
+  required?: boolean;
+  id?: string;
+  class?: string;
+}
+
+const {
+  name,
+  label,
+  type = 'text',
+  placeholder,
+  required = false,
+  id = `input-${name}`,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const classes = ['input', className].filter(Boolean).join(' ');
+---
+
+<div class="input__field-group">
+  <label class="input__label" for={id}>{label}</label>
+  <input id={id} name={name} type={type} placeholder={placeholder} required={required} class={classes} {...rest} />
+</div>
+
+<style>
+  .input__field-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-gap-sm);
+  }
+
+  .input__label {
+    font-size: var(--global-type-step--1);
+    font-weight: var(--global-weight-medium);
+    color: var(--color-text-muted);
+  }
+
+  .input {
+    width: 100%;
+    padding: var(--spacing-padding-sm) var(--spacing-padding-md);
+    font-family: inherit;
+    font-size: var(--type-body);
+    color: var(--color-text-body);
+    background-color: var(--color-bg-surface);
+    border: var(--global-border-width-hairline) solid var(--color-border-subtle);
+    border-radius: var(--radius-control);
+    transition:
+      border-color var(--global-duration-fast) var(--global-ease-out),
+      box-shadow var(--global-duration-fast) var(--global-ease-out);
+  }
+
+  .input::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.7;
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--color-border-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-border-focus) 25%, transparent);
+  }
+</style>

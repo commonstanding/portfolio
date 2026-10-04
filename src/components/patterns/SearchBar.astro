@@ -1,0 +1,63 @@
+---
+// TIER 3: PATTERN — SearchBar
+// Composite block: combines Input + Button UI primitives into a
+// flexbox-aligned form. Layout margins live HERE, not in the
+// base components.
+import Input from '../ui/Input.astro';
+import Button from '../ui/Button.astro';
+
+interface Props {
+  action?: string;
+  placeholder?: string;
+  buttonLabel?: string;
+}
+
+const {
+  action = '/search',
+  placeholder = 'Lorem ipsum dolor sit amet',
+  buttonLabel = 'Search',
+} = Astro.props;
+---
+
+<form class="search-bar" action={action} method="get" role="search" aria-label="Site search">
+  <div class="search-bar__control">
+    <Input
+      name="q"
+      label="Search the site"
+      type="search"
+      placeholder={placeholder}
+    />
+  </div>
+  <div class="search-bar__action">
+    <Button type="submit" variant="primary" aria-label={`Submit search: ${buttonLabel}`}>
+      {buttonLabel}
+    </Button>
+  </div>
+</form>
+
+<style>
+  .search-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--spacing-gap-md);
+    margin-block: var(--spacing-padding-lg);
+  }
+
+  .search-bar__control {
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+
+  .search-bar__action {
+    flex: 0 0 auto;
+  }
+
+  /* Stack the action under the field on narrow screens */
+  @media (max-width: 480px) {
+    .search-bar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>

@@ -1,0 +1,830 @@
+---
+// TEMPORARY: Grid system overlay for design QA.
+// Toggles (keyboard):
+//   g — master on/off (all layers)
+//   h — horizontal row grid (tracks + gutters)
+//   m — container margin guides
+//   p — padding outlines on elements
+// Also controllable via the floating widget (bottom-right).
+// Remove before production.
+interface Props {
+  columns?: number;
+}
+const { columns = 12 } = Astro.props;
+---
+
+<div class="grid-overlay" id="grid-overlay" aria-hidden="true">
+  <!-- Layer 1: container margin guides -->
+  <div class="grid-overlay__margins" id="grid-overlay-margins">
+    <span class="grid-overlay__margin grid-overlay__margin--left"></span>
+    <span class="grid-overlay__margin grid-overlay__margin--right"></span>
+  </div>
+
+  <!-- Layer 2: vertical column grid -->
+  <div class="grid-overlay__inner">
+    {Array.from({ length: columns }).map((_, i) => (
+      <span class="grid-overlay__col">
+        <span class="grid-overlay__col-num" data-col={i + 1}>{i + 1}</span>
+      </span>
+    ))}
+  </div>
+
+  <!-- Layer 3: gutter visualization — bars positioned by JS from the real
+       column rects, so they always line up exactly with the rendered gaps -->
+  <div class="grid-overlay__gutters" id="grid-overlay-gutters"></div>
+</div>
+
+<!-- TEMPORARY: floating control widget for overlay layers -->
+<div class="grid-widget" id="grid-widget" role="group" aria-label="Grid overlay controls">
+  <div class="grid-widget__header">
+    <button class="grid-widget__toggle" id="grid-widget-toggle" aria-expanded="false" aria-controls="grid-widget-layers">
+      Grid
+    </button>
+    <button class="grid-widget__minimise" id="grid-widget-minimise" aria-label="Minimise grid widget" title="Minimise">
+      –
+    </button>
+  </div>
+  <div class="grid-widget__layers" id="grid-widget-layers" hidden>
+    <label class="grid-widget__item"><input type="checkbox" data-layer="columns" /> Columns <kbd>C</kbd></label>
+    <label class="grid-widget__item"><input type="checkbox" data-layer="gutters" /> Gutters <kbd>U</kbd></label>
+    <label class="grid-widget__item"><input type="checkbox" data-layer="margins" /> Margins <kbd>M</kbd></label>
+    <label class="grid-widget__item"><input type="checkbox" data-layer="padding" /> Padding <kbd>P</kbd></label>
+    <label class="grid-widget__item"><input type="checkbox" data-layer="hover" /> Hover inspect <kbd>O</kbd></label>
+    <label class="grid-widget__item"><input type="checkbox" data-layer="numbers" /> Column numbers <kbd>N</kbd></label>
+  </div>
+  <div class="grid-widget__density" role="group" aria-label="Preview gutter density">
+    <span class="grid-widget__density-label">Density preview</span>
+    <div class="grid-widget__density-options">
+      <label class="grid-widget__density-option"><input type="radio" name="gutter-density" value="flush" /> Flush</label>
+      <label class="grid-widget__density-option"><input type="radio" name="gutter-density" value="separated" checked /> Separated</label>
+      <label class="grid-widget__density-option"><input type="radio" name="gutter-density" value="dense" /> Dense</label>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPORARY: hover inspector — shows hovered element's own box model -->
+<div class="grid-inspector" id="grid-inspector" aria-hidden="true">
+  <div class="grid-inspector__margin" id="grid-inspector-margin"></div>
+  <div class="grid-inspector__padding" id="grid-inspector-padding"></div>
+  <div class="grid-inspector__content" id="grid-inspector-content"></div>
+  <div class="grid-inspector__label" id="grid-inspector-label"></div>
+</div>
+
+<style>
+  .grid-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    display: none;
+  }
+
+  .grid-overlay.is-visible {
+    display: block;
+  }
+
+  /* ---- Layer 1: container margin guides ---- */
+  .grid-overlay__margins {
+    position: absolute;
+    inset: 0;
+    display: none;
+  }
+
+  .grid-overlay.show-margins .grid-overlay__margins {
+    display: block;
+  }
+
+  /* Margin guides use a distinct hue (teal) so they read separately from
+     the orange columns and gutters. They span from the viewport edge to
+     the first column — the margin IS everything outside the grid. */
+  .grid-overlay__margin {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background-color: color-mix(in srgb, #2a9d8f 14%, transparent);
+    border-inline: 1px dashed color-mix(in srgb, #2a9d8f 50%, transparent);
+  }
+
+  /* Positioned from the real column rects by JS (see layoutMargins),
+     with these CSS values as the no-JS fallback. */
+  .grid-overlay__margin--left {
+    left: 0;
+    right: auto;
+    width: max(0px, calc((100% - var(--global-container-max)) / 2 + var(--global-container-pad)));
+  }
+
+  .grid-overlay__margin--right {
+    right: 0;
+    left: auto;
+    width: max(0px, calc((100% - var(--global-container-max)) / 2 + var(--global-container-pad)));
+  }
+
+  /* ---- Layer 2: vertical column grid ---- */
+  .grid-overlay__inner {
+    position: absolute;
+    inset: 0;
+    max-width: var(--global-container-max);
+    margin-inline: auto;
+    padding-inline: var(--global-container-pad);
+    display: grid;
+    grid-template-columns: repeat(var(--global-grid-columns), minmax(0, 1fr));
+    gap: var(--global-grid-gutter);
+    visibility: hidden;
+  }
+
+  /* Column numbers anchor to their track */
+  .grid-overlay__col {
+    position: relative;
+  }
+
+  .grid-overlay.show-columns .grid-overlay__inner {
+    visibility: visible;
+  }
+
+  .grid-overlay__col {
+    background-color: color-mix(in srgb, var(--color-bg-brand) 8%, transparent);
+    border-inline: var(--global-border-width-hairline) solid
+      color-mix(in srgb, var(--color-bg-brand) 30%, transparent);
+  }
+
+  /* Column numbers — shown when the numbers layer is on */
+  .grid-overlay__col-num {
+    position: absolute;
+    top: 0.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    font-family: var(--global-font-sans);
+    font-size: var(--global-type-step--2);
+    font-weight: var(--global-weight-semibold);
+    color: var(--color-text-heading);
+    background-color: var(--color-bg-surface);
+    border: var(--global-border-width-hairline) solid var(--color-border-strong);
+    border-radius: var(--global-radius-xs);
+    padding: 0.05em 0.4em;
+  }
+
+  .grid-overlay.show-numbers .grid-overlay__col-num {
+    display: inline-block;
+  }
+
+  /* ---- Layer 3: gutter visualization ----
+     Bars are created by JS at runtime, so these rules must be :global()
+     — Astro's scoped selectors only match elements present at build time. */
+  .grid-overlay__gutters {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+  }
+
+  .grid-overlay.show-gutters .grid-overlay__gutters {
+    visibility: visible;
+  }
+
+  :global(.grid-overlay__gutter) {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background-color: color-mix(in srgb, var(--color-text-accent) 30%, transparent);
+  }
+
+  :global(.grid-overlay__gutter) {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background-color: color-mix(in srgb, var(--color-text-accent) 30%, transparent);
+  }
+
+  /* Label shows the computed gap value (set by JS) — mosaic regions
+     read "0px", spaced regions read their density. */
+  :global(.grid-overlay__gutter::after) {
+    content: attr(data-width);
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--global-font-sans);
+    font-size: var(--global-type-step--2);
+    color: var(--color-text-heading);
+    background-color: var(--color-bg-surface);
+    border: var(--global-border-width-hairline) solid var(--color-border-strong);
+    border-radius: var(--global-radius-xs);
+    padding: 0.1em 0.5em;
+    white-space: nowrap;
+  }
+
+  /* Zero-width gaps (mosaic) get no label — nothing to measure */
+  :global(.grid-overlay__gutter[data-zero]::after) {
+    content: none;
+  }
+
+  /* ---- Hover inspector: DevTools-style box model for the hovered element ---- */
+  .grid-inspector {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    display: none;
+  }
+
+  /* The inspector is a sibling of .grid-overlay (not a child), so the
+     visibility rule uses :has() on the shared parent instead of nesting. */
+  body:has(.grid-overlay.is-visible.show-hover) .grid-inspector {
+    display: block;
+  }
+
+  .grid-inspector__margin,
+  .grid-inspector__padding,
+  .grid-inspector__content {
+    position: absolute;
+    display: none;
+  }
+
+  /* margin box — green tint (DevTools convention) */
+  .grid-inspector__margin {
+    background-color: color-mix(in srgb, #7fb069 25%, transparent);
+    outline: 1px dashed color-mix(in srgb, #7fb069 70%, transparent);
+  }
+
+  /* padding box — orange tint (brand) */
+  .grid-inspector__padding {
+    background-color: color-mix(in srgb, var(--color-bg-brand) 25%, transparent);
+    outline: 1px dashed color-mix(in srgb, var(--color-bg-brand) 70%, transparent);
+  }
+
+  /* content box — blue tint */
+  .grid-inspector__content {
+    background-color: color-mix(in srgb, #6495ed 25%, transparent);
+    outline: 1px solid color-mix(in srgb, #6495ed 70%, transparent);
+  }
+
+  /* dimension label */
+  .grid-inspector__label {
+    position: absolute;
+    display: none;
+    padding: 0.15em 0.5em;
+    font-family: var(--global-font-sans);
+    font-size: var(--global-type-step--2);
+    font-weight: var(--global-weight-semibold);
+    line-height: var(--global-leading-tight);
+    color: var(--color-text-on-inverse);
+    background-color: var(--color-bg-inverse);
+    border-radius: var(--global-radius-xs);
+    white-space: nowrap;
+    transform: translate(4px, 4px);
+  }
+
+  /* ---- Floating control widget ---- */
+  .grid-widget {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 10000;
+    font-family: var(--global-font-sans);
+    font-size: var(--global-type-step--1);
+    color: var(--color-text-heading);
+    background-color: var(--color-bg-surface);
+    border: var(--global-border-width-hairline) solid var(--color-border-strong);
+    border-radius: var(--global-radius-md);
+    box-shadow: var(--global-shadow-lg);
+    overflow: hidden;
+  }
+
+  /* Widget header: toggle + minimise side by side */
+  .grid-widget__header {
+    display: flex;
+    align-items: center;
+  }
+
+  .grid-widget__toggle {
+    flex: 1;
+    display: block;
+    padding: var(--spacing-padding-xs) var(--spacing-padding-sm);
+    font: inherit;
+    font-weight: var(--global-weight-semibold);
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .grid-widget__minimise {
+    flex: 0 0 auto;
+    margin-inline-end: var(--spacing-gap-sm);
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    display: inline-grid;
+    place-items: center;
+    font: inherit;
+    font-weight: var(--global-weight-semibold);
+    line-height: 1;
+    color: var(--color-text-muted);
+    background: none;
+    border: var(--global-border-width-hairline) solid var(--color-border-subtle);
+    border-radius: var(--global-radius-xs);
+    cursor: pointer;
+  }
+
+  .grid-widget__minimise:hover {
+    color: var(--color-text-heading);
+    border-color: var(--color-border-strong);
+  }
+
+  /* Minimised state: collapse everything below the header.
+     !important needed because the density block's sibling selector
+     (.grid-widget__layers:not([hidden]) ~ ...) outranks a plain class. */
+  .grid-widget.is-minimised .grid-widget__layers,
+  .grid-widget.is-minimised .grid-widget__density {
+    display: none !important;
+  }
+
+  .grid-widget__toggle:hover {
+    background-color: var(--color-bg-muted);
+  }
+
+  .grid-widget__layers {
+    display: flex;
+    flex-direction: column;
+    border-block-start: var(--global-border-width-hairline) solid var(--color-border-subtle);
+  }
+
+  .grid-widget__item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-gap-sm);
+    padding: var(--spacing-padding-xs) var(--spacing-padding-sm);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .grid-widget__item:hover {
+    background-color: var(--color-bg-muted);
+  }
+
+  .grid-widget__item input {
+    accent-color: var(--color-bg-brand);
+    margin: 0;
+  }
+
+  .grid-widget__item kbd {
+    margin-inline-start: auto;
+    font-family: inherit;
+    font-size: var(--global-type-step--2);
+    color: var(--color-text-muted);
+    border: var(--global-border-width-hairline) solid var(--color-border-subtle);
+    border-radius: var(--global-radius-xs);
+    padding: 0 0.3em;
+  }
+
+  /* ---- Density preview switcher ----
+     Temporarily re-scopes --grid-gutter page-wide so you can preview how
+     every grid responds to each density. Does NOT change component code. */
+  .grid-widget__density {
+    display: none;
+    flex-direction: column;
+    gap: var(--spacing-gap-sm);
+    padding: var(--spacing-padding-sm);
+    border-block-start: var(--global-border-width-hairline) solid var(--color-border-subtle);
+  }
+
+  .grid-widget__layers:not([hidden]) ~ .grid-widget__density {
+    display: flex;
+  }
+
+  .grid-widget__density-label {
+    font-size: var(--global-type-step--2);
+    font-weight: var(--global-weight-semibold);
+    color: var(--color-text-muted);
+  }
+
+  .grid-widget__density-options {
+    display: flex;
+    gap: var(--spacing-gap-sm);
+  }
+
+  .grid-widget__density-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: var(--global-type-step--2);
+    cursor: pointer;
+  }
+
+  .grid-widget__density-option input {
+    accent-color: var(--color-bg-brand);
+    margin: 0;
+  }
+</style>
+
+<script>
+  // Layer toggles, persisted per session so they survive reloads while designing.
+  const KEYS = {
+    master: 'grid-overlay-visible',
+    columns: 'grid-overlay-columns',
+    gutters: 'grid-overlay-gutters',
+    margins: 'grid-overlay-margins',
+    padding: 'grid-overlay-padding',
+    hover: 'grid-overlay-hover',
+    numbers: 'grid-overlay-numbers',
+  } as const;
+
+  const overlay = document.getElementById('grid-overlay');
+  const body = document.body;
+
+  function setLayer(key: keyof typeof KEYS, visible: boolean) {
+    sessionStorage.setItem(KEYS[key], String(visible));
+    if (!overlay || !body) return;
+    if (key === 'master') {
+      overlay.classList.toggle('is-visible', visible);
+    } else if (key === 'columns') {
+      overlay.classList.toggle('show-columns', visible);
+    } else if (key === 'gutters') {
+      overlay.classList.toggle('show-gutters', visible);
+    } else if (key === 'margins') {
+      overlay.classList.toggle('show-margins', visible);
+    } else if (key === 'hover') {
+      overlay.classList.toggle('show-hover', visible);
+      if (!visible) hideInspector();
+    } else if (key === 'numbers') {
+      overlay.classList.toggle('show-numbers', visible);
+    } else if (key === 'padding') {
+      body.classList.toggle('show-padding-outlines', visible);
+      if (visible) injectPaddingOutlines();
+      else removePaddingOutlines();
+    }
+  }
+
+  function getLayer(key: keyof typeof KEYS): boolean {
+    return sessionStorage.getItem(KEYS[key]) === 'true';
+  }
+
+  // Master toggle: turning the overlay ON also enables the base layers
+  // (columns + gutters) if nothing is enabled yet — otherwise pressing "g"
+  // shows an empty overlay that looks like nothing happened.
+  function toggleMaster() {
+    const turningOn = !getLayer('master');
+    if (turningOn && !getLayer('columns') && !getLayer('gutters') && !getLayer('margins') && !getLayer('padding') && !getLayer('hover') && !getLayer('numbers')) {
+      setLayer('columns', true);
+      setLayer('gutters', true);
+    }
+    setLayer('master', turningOn);
+  }
+
+  // ---- Padding outlines: detect ANY element with real padding via
+  // computed styles, so nothing is missed and no selector list to maintain.
+  // A small threshold skips elements whose padding is negligible (e.g. 0).
+  const PADDING_THRESHOLD = 4; // px — below this, an outline is just noise
+
+  function findPaddedElements(): HTMLElement[] {
+    const padded: HTMLElement[] = [];
+    document.querySelectorAll<HTMLElement>('body *').forEach((el) => {
+      if (el.closest('#grid-overlay, #grid-widget')) return; // skip overlay's own UI
+      const s = getComputedStyle(el);
+      const pad =
+        parseFloat(s.paddingTop) + parseFloat(s.paddingBottom) +
+        parseFloat(s.paddingLeft) + parseFloat(s.paddingRight);
+      if (pad >= PADDING_THRESHOLD) padded.push(el);
+    });
+    return padded;
+  }
+
+  function injectPaddingOutlines() {
+    removePaddingOutlines();
+    findPaddedElements().forEach((el) => {
+      el.classList.add('grid-overlay-padding-outline');
+    });
+  }
+
+  function removePaddingOutlines() {
+    document
+      .querySelectorAll<HTMLElement>('.grid-overlay-padding-outline')
+      .forEach((el) => el.classList.remove('grid-overlay-padding-outline'));
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (k === 'g') toggleMaster();
+    if (k === 'c') setLayer('columns', !getLayer('columns'));
+    if (k === 'u') setLayer('gutters', !getLayer('gutters'));
+    if (k === 'm') setLayer('margins', !getLayer('margins'));
+    if (k === 'p') setLayer('padding', !getLayer('padding'));
+    if (k === 'o') setLayer('hover', !getLayer('hover'));
+    if (k === 'n') setLayer('numbers', !getLayer('numbers'));
+  });
+
+  // Restore state on load
+  const master = getLayer('master');
+  overlay?.classList.toggle('is-visible', master);
+  overlay?.classList.toggle('show-columns', getLayer('columns'));
+  overlay?.classList.toggle('show-gutters', getLayer('gutters'));
+  overlay?.classList.toggle('show-margins', getLayer('margins'));
+  overlay?.classList.toggle('show-hover', getLayer('hover'));
+  overlay?.classList.toggle('show-numbers', getLayer('numbers'));
+
+  // ---- Widget wiring ----
+  const widget = document.getElementById('grid-widget');
+  const widgetToggle = document.getElementById('grid-widget-toggle');
+  const widgetLayers = document.getElementById('grid-widget-layers');
+
+  // Columns layer: shown with the master overlay (it IS the base layer).
+  // Master "g" now maps to the widget's open state + columns visibility.
+  function syncWidget() {
+    if (!widgetLayers) return;
+    widgetLayers.querySelectorAll<HTMLInputElement>('input[data-layer]').forEach((input) => {
+      const layer = input.dataset.layer as keyof typeof KEYS | undefined;
+      if (!layer) return;
+      input.checked = getLayer(layer);
+    });
+  }
+
+  widgetToggle?.addEventListener('click', () => {
+    const panelWasClosed = widgetLayers?.hasAttribute('hidden');
+    widgetLayers?.toggleAttribute('hidden', !panelWasClosed);
+    widgetToggle?.setAttribute('aria-expanded', String(!!panelWasClosed));
+    // Opening the panel un-minimises the widget
+    if (panelWasClosed) widget?.classList.remove('is-minimised');
+    // The Grid button is also the master switch: if the overlay is off,
+    // opening the panel turns it on (with base layers) so the button
+    // always does something visible.
+    if (panelWasClosed && !getLayer('master')) toggleMaster();
+  });
+
+  // Minimise: collapse the panel to just the header; state persists per session
+  const widgetMinimise = document.getElementById('grid-widget-minimise');
+  const MINIMISE_KEY = 'grid-widget-minimised';
+
+  function setMinimised(minimised: boolean) {
+    widget?.classList.toggle('is-minimised', minimised);
+    sessionStorage.setItem(MINIMISE_KEY, String(minimised));
+    if (widgetMinimise) {
+      widgetMinimise.setAttribute('aria-label', minimised ? 'Restore grid widget' : 'Minimise grid widget');
+      widgetMinimise.textContent = minimised ? '+' : '–';
+      widgetMinimise.title = minimised ? 'Restore' : 'Minimise';
+    }
+  }
+
+  widgetMinimise?.addEventListener('click', () => {
+    setMinimised(!widget?.classList.contains('is-minimised'));
+  });
+
+  // Restore minimise state on load
+  if (sessionStorage.getItem(MINIMISE_KEY) === 'true') {
+    setMinimised(true);
+  }
+
+  widgetLayers?.addEventListener('change', (e) => {
+    const input = (e.target as HTMLInputElement).closest('input[data-layer]') as HTMLInputElement | null;
+    if (!input?.dataset.layer) return;
+    setLayer(input.dataset.layer as keyof typeof KEYS, input.checked);
+  });
+
+  // Keep checkboxes in sync when toggling via keyboard
+  document.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (['g', 'm', 'p', 'c', 'u', 'o', 'n'].includes(k)) setTimeout(syncWidget, 0);
+  });
+
+  // Initial sync on load
+  setTimeout(syncWidget, 0);
+
+  // ---- Gutter bars: positioned from the REAL column rects so they always
+  // line up exactly with the rendered gaps. When a density preview is
+  // active, bars are drawn at the PREVIEWED density width (centered on the
+  // real gap) so you can compare densities without touching the page. ----
+  const guttersLayer = document.getElementById('grid-overlay-gutters');
+
+  // Density preview constants — must be declared before layoutGutters runs.
+  const DENSITY_PX: Record<string, number> = {
+    flush: 0,
+    separated: 24,
+    dense: 8,
+  };
+  const DENSITY_LABEL: Record<string, string> = {
+    flush: 'flush (0px)',
+    separated: 'separated (24px)',
+    dense: 'dense (8px)',
+  };
+
+  function layoutGutters() {
+    if (!guttersLayer || !overlay) return;
+    const cols = overlay.querySelectorAll('.grid-overlay__col');
+    guttersLayer.textContent = ''; // clear existing bars
+    const previewDensity = sessionStorage.getItem('grid-overlay-density');
+    const previewPx = previewDensity ? DENSITY_PX[previewDensity] : null;
+    const overlayLeft = overlay.getBoundingClientRect().left;
+    for (let i = 0; i < cols.length - 1; i++) {
+      const a = cols[i].getBoundingClientRect();
+      const b = cols[i + 1].getBoundingClientRect();
+      const realGap = b.left - a.right;
+      const bar = document.createElement('span');
+      bar.className = 'grid-overlay__gutter';
+      // Center the previewed bar on the real gap's center
+      const gapCenter = a.right + realGap / 2 - overlayLeft;
+      const width = previewPx ?? realGap;
+      bar.style.left = `${a.right - overlayLeft + (realGap - width) / 2}px`;
+      bar.style.width = `${width}px`;
+      // Label shows the previewed (or real) gap value
+      if (width >= 1) {
+        bar.dataset.width = previewDensity
+          ? `${Math.round(width)}px · ${DENSITY_LABEL[previewDensity]}`
+          : `${Math.round(width)}px`;
+      } else {
+        bar.dataset.zero = '';
+      }
+      guttersLayer.appendChild(bar);
+    }
+  }
+
+  // Recompute on resize (1fr tracks change) and once on load
+  let gutterRaf = 0;
+  function scheduleGutterLayout() {
+    cancelAnimationFrame(gutterRaf);
+    gutterRaf = requestAnimationFrame(() => {
+      layoutColumns(); // apply/clear the simulated gap FIRST
+      // then measure bars on the following frame, after the reflow settles
+      requestAnimationFrame(layoutGutters);
+    });
+  }
+  window.addEventListener('resize', scheduleGutterLayout);
+  if (overlay) {
+    new ResizeObserver(scheduleGutterLayout).observe(overlay);
+  }
+  layoutGutters();
+  layoutColumns();
+
+  // ---- Column bars: reposition the column tracks to reflect the
+  // previewed density. With flush, tracks expand to absorb the gutters;
+  // with dense, they shrink. The page's real grid is untouched — this is
+  // purely what the overlay SHOWS. ----
+  function layoutColumns() {
+    if (!overlay) return;
+    const inner = overlay.querySelector<HTMLElement>('.grid-overlay__inner');
+    if (!inner) return;
+    const previewDensity = sessionStorage.getItem('grid-overlay-density');
+    if (!previewDensity) {
+      // No preview: restore natural 1fr tracks
+      inner.style.gridTemplateColumns = '';
+      inner.style.gap = '';
+      return;
+    }
+    const px = DENSITY_PX[previewDensity];
+    // Simulate the density: fixed gutter width, tracks share the remainder
+    inner.style.gap = `${px}px`;
+  }
+
+  // ---- Margin guides: span from the viewport edge to the first/last
+  // column edge — the margin IS everything outside the grid. Positioned
+  // from the real column rects so they're pixel-exact. ----
+  const marginL = document.querySelector<HTMLElement>('.grid-overlay__margin--left');
+  const marginR = document.querySelector<HTMLElement>('.grid-overlay__margin--right');
+
+  function layoutMargins() {
+    if (!overlay || !marginL || !marginR) return;
+    const cols = overlay.querySelectorAll('.grid-overlay__col');
+    if (!cols.length) return;
+    const overlayRect = overlay.getBoundingClientRect();
+    const firstCol = cols[0].getBoundingClientRect();
+    const lastCol = cols[cols.length - 1].getBoundingClientRect();
+    // Left guide: viewport edge → first column edge.
+    marginL.style.left = '0px';
+    marginL.style.width = `${firstCol.left - overlayRect.left}px`;
+    // Right guide: last column edge → true window edge. Anchored by LEFT
+    // (not right:0) because the fixed overlay's layout viewport excludes
+    // the scrollbar — anchoring right would clip the guide 15px short.
+    // The overlay has overflow:visible, so the guide can extend past it.
+    marginR.style.left = `${lastCol.right - overlayRect.left}px`;
+    marginR.style.right = 'auto';
+    marginR.style.width = `${window.innerWidth - lastCol.right}px`;
+  }
+
+  // Recompute whenever the overlay becomes visible (rects are 0 while
+  // display:none) and on resize.
+  const layoutAll = () => {
+    if (overlay?.classList.contains('is-visible')) {
+      layoutGutters();
+      layoutMargins();
+    }
+  };
+  scheduleGutterLayout();
+  if (overlay) {
+    new MutationObserver(layoutAll).observe(overlay, { attributes: true, attributeFilter: ['class'] });
+  }
+  window.addEventListener('resize', () => {
+    scheduleGutterLayout();
+    requestAnimationFrame(layoutMargins);
+  });
+  layoutMargins();
+
+  // ---- Hover inspector: show the hovered element's own box model ----
+  const inspector = document.getElementById('grid-inspector');
+  const insMargin = document.getElementById('grid-inspector-margin');
+  const insPadding = document.getElementById('grid-inspector-padding');
+  const insContent = document.getElementById('grid-inspector-content');
+  const insLabel = document.getElementById('grid-inspector-label');
+
+  function placeBox(box: HTMLElement | null, r: { left: number; top: number; width: number; height: number } | null) {
+    if (!box) return;
+    if (!r) {
+      box.style.display = 'none';
+      return;
+    }
+    box.style.display = 'block';
+    box.style.left = `${r.left}px`;
+    box.style.top = `${r.top}px`;
+    box.style.width = `${r.width}px`;
+    box.style.height = `${r.height}px`;
+  }
+
+  function hideInspector() {
+    for (const box of [insMargin, insPadding, insContent, insLabel]) {
+      if (box) box.style.display = 'none';
+    }
+  }
+
+  function inspect(event: Event) {
+    if (!getLayer('hover') || !getLayer('master')) return;
+    const el = event.target as HTMLElement | null;
+    if (!el || !(el instanceof HTMLElement) || !document.contains(el)) {
+      hideInspector();
+      return;
+    }
+    // Skip the overlay's own UI
+    if (el.closest('#grid-overlay, #grid-widget, #grid-inspector')) {
+      hideInspector();
+      return;
+    }
+
+    const cs = getComputedStyle(el);
+    const r = el.getBoundingClientRect();
+
+    // Content box: subtract padding + border from the border box
+    const bw = parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+    const bh = parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+    const pw = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const ph = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    const content = {
+      left: r.left + parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft),
+      top: r.top + parseFloat(cs.borderTopWidth) + parseFloat(cs.paddingTop),
+      width: r.width - bw - pw,
+      height: r.height - bh - ph,
+    };
+    const padding = {
+      left: r.left + parseFloat(cs.borderLeftWidth),
+      top: r.top + parseFloat(cs.borderTopWidth),
+      width: r.width - bw,
+      height: r.height - bh,
+    };
+    // Margin box extends outside the border box
+    const margin = {
+      left: r.left - parseFloat(cs.marginLeft),
+      top: r.top - parseFloat(cs.marginTop),
+      width: r.width + parseFloat(cs.marginLeft) + parseFloat(cs.marginRight),
+      height: r.height + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom),
+    };
+
+    placeBox(insMargin, margin);
+    placeBox(insPadding, padding);
+    placeBox(insContent, content);
+
+    if (insLabel) {
+      const name = el.tagName.toLowerCase() + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).join('.') : '');
+      insLabel.textContent = `${name}  ${Math.round(r.width)} × ${Math.round(r.height)}`;
+      insLabel.style.display = 'block';
+      insLabel.style.left = `${r.left}px`;
+      insLabel.style.top = `${r.top}px`;
+    }
+  }
+
+  document.addEventListener('mouseover', inspect, true);
+  document.addEventListener('scroll', hideInspector, { passive: true });
+
+  // ---- Density preview: changes what the OVERLAY SHOWS, not the page.
+// The page's real gaps are untouched; the gutter bars are re-drawn at the
+// selected density's width so you can compare densities visually. ----
+  function setDensityPreview(density: string | null) {
+    if (density) {
+      sessionStorage.setItem('grid-overlay-density', density);
+    } else {
+      sessionStorage.removeItem('grid-overlay-density');
+    }
+    scheduleGutterLayout(); // re-draw bars AND column tracks
+  }
+
+  const densityInputs = document.querySelectorAll<HTMLInputElement>('input[name="gutter-density"]');
+  densityInputs.forEach((input) => {
+    input.addEventListener('change', () => {
+      // 'separated' = the default → clear the override entirely
+      setDensityPreview(input.value === 'separated' ? null : input.value);
+    });
+  });
+
+  // Restore preview state on load
+  const savedDensity = sessionStorage.getItem('grid-overlay-density');
+  if (savedDensity) {
+    const radio = document.querySelector<HTMLInputElement>(`input[name="gutter-density"][value="${savedDensity}"]`);
+    if (radio) radio.checked = true;
+  }
+</script>

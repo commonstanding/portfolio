@@ -1,0 +1,231 @@
+/* ==========================================================================
+   TIER 1: FOUNDATIONS — Design Tokens
+   Source of truth for the portfolio design system.
+   Two layers:
+     1. Global tokens  — raw, context-free values (primitives)
+     2. Semantic tokens — functional aliases mapped to use cases
+   Components must consume SEMANTIC tokens only, never raw globals.
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------
+     1. GLOBAL TOKENS (raw values)
+     ------------------------------------------------------------------ */
+
+  /* Color — primitives */
+  --global-color-cream-50: #faf7f0;
+  --global-color-cream-100: #f2ede1; /* page background in reference */
+  --global-color-cream-200: #e8e1d1;
+  --global-color-cream-300: #d9d0bb;
+
+  --global-color-orange-300: #f08a5f;
+  --global-color-orange-400: #ee7443;
+  --global-color-orange-500: #e8622c; /* brand accent in reference */
+  --global-color-orange-600: #c94e1f;
+
+  --global-color-ink-700: #3d3831;
+  --global-color-ink-800: #26221d;
+  --global-color-ink-900: #1a1815; /* near-black cards / text */
+
+  --global-color-white: #ffffff;
+  --global-color-black: #000000;
+
+  /* Typography — families */
+  --global-font-sans: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  --global-font-display: 'Inter Tight', 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+
+  /* Typography — modular scale (1.25 major third) */
+  --global-type-step--2: 0.6944rem; /* ~11px  — fine print */
+  --global-type-step--1: 0.8333rem; /* ~13px  — captions, meta */
+  --global-type-step-0: 1rem; /* 16px   — body base */
+  --global-type-step-1: 1.25rem; /* 20px   — lede */
+  --global-type-step-2: 1.5625rem; /* 25px   — h4 */
+  --global-type-step-3: 1.9531rem; /* 31px   — h3 */
+  --global-type-step-4: 2.4414rem; /* 39px   — h2 */
+  --global-type-step-5: 3.0518rem; /* 49px   — h1 */
+  --global-type-step-6: 3.8147rem; /* 61px   — display */
+  --global-type-step-7: 4.7684rem; /* 76px   — hero */
+
+  /* Typography — weights & leading.
+     Leading values are chosen so body text lands on the 4px grid:
+     normal = 1.5 × 16px = 24px, snug = 1.25, tight = 1.1 (display sizes
+     are optical — tight leading reads better at large sizes). */
+  --global-weight-regular: 400;
+  --global-weight-medium: 500;
+  --global-weight-semibold: 600;
+  --global-weight-bold: 700;
+  --global-leading-tight: 1.1;
+  --global-leading-snug: 1.25;
+  --global-leading-normal: 1.5;
+
+  /* Spacing — 4px base scale */
+  --global-space-3xs: 0.25rem; /*  4px */
+  --global-space-2xs: 0.5rem; /*  8px */
+  --global-space-xs: 0.75rem; /* 12px */
+  --global-space-sm: 1rem; /* 16px */
+  --global-space-md: 1.5rem; /* 24px */
+  --global-space-lg: 2rem; /* 32px */
+  --global-space-xl: 3rem; /* 48px */
+  --global-space-2xl: 4rem; /* 64px */
+  --global-space-3xl: 6rem; /* 96px */
+  --global-space-4xl: 8rem; /* 128px */
+
+  /* Radii — reference uses soft, generous rounding */
+  --global-radius-xs: 0.25rem;
+  --global-radius-sm: 0.5rem;
+  --global-radius-md: 1rem;
+  --global-radius-lg: 1.5rem;
+  --global-radius-xl: 2rem;
+  --global-radius-pill: 999px;
+
+  /* Borders & elevation */
+  --global-border-width-hairline: 1px;
+  --global-shadow-sm: 0 1px 2px rgb(26 24 21 / 0.06);
+  --global-shadow-md: 0 4px 12px rgb(26 24 21 / 0.08);
+  --global-shadow-lg: 0 12px 32px rgb(26 24 21 / 0.12);
+
+  /* Motion */
+  --global-duration-fast: 150ms;
+  --global-duration-normal: 250ms;
+  --global-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Layout — grid system (horizontal + vertical rhythm) */
+  --global-grid-columns: 12;
+  --global-container-max: 75rem; /* 1200px */
+  /* Fluid container padding: gains content width on small viewports,
+     grows slightly on large ones. Always ≥ the gutter. */
+  --global-container-pad: clamp(1rem, 3vw, 2rem);
+  /* Vertical rhythm between sections — 4× the largest component gap.
+     Single-direction margins + flex/grid gap handle the rest. */
+  --global-section-gap: 6rem; /* 96px */
+
+  /* Sheet-on-backdrop layout — the page renders as a rounded sheet
+     floating over a full-bleed backdrop (reference styling). The sheet
+     is wider than the container so the container's own padding becomes
+     the sheet's internal gutter. */
+  --global-sheet-max: 84rem; /* 1344px */
+  --global-sheet-gap: clamp(0.75rem, 2.5vw, 2rem); /* backdrop reveal around the sheet */
+
+  /* Gutter density scale — the only legal gutter values.
+     The gutter is a property of the CONTENT PATTERN, not the page:
+     flush compositions touch (0), cards separate (24px), dense data
+     tightens (8px). See docs/spec-scoped-gutter-tokens.md. */
+  --global-gutter-none: 0px;      /* flush: tiles touch */
+  --global-gutter-tight: 0.5rem;  /*  8px — dense data layouts */
+  --global-gutter-base: 1.5rem;   /* 24px — default page grid */
+  --global-gutter-loose: 2.5rem;  /* 40px — airy editorial layouts */
+  /* DEPRECATED: alias kept for one release; do not consume directly. */
+  --global-grid-gutter: var(--global-gutter-base);
+
+  /* Breakpoints (used in media queries; CSS vars can't drive @media) */
+  /* 640px / 768px / 1024px / 1280px */
+
+  /* ------------------------------------------------------------------
+     2. SEMANTIC TOKENS (functional aliases)
+     ------------------------------------------------------------------ */
+
+  /* Surfaces */
+  --color-bg-page: var(--global-color-cream-100);
+  --color-bg-surface: var(--global-color-cream-50);
+  --color-bg-brand: var(--global-color-orange-500);
+  --color-bg-brand-hover: var(--global-color-orange-400);
+  --color-bg-inverse: var(--global-color-ink-900);
+  --color-bg-muted: var(--global-color-cream-200);
+  --color-bg-backdrop: var(--global-color-ink-900); /* behind the sheet */
+
+  /* Text */
+  --color-text-body: var(--global-color-ink-800);
+  --color-text-heading: var(--global-color-ink-900);
+  --color-text-muted: var(--global-color-ink-700);
+  --color-text-on-brand: var(--global-color-cream-50);
+  --color-text-on-inverse: var(--global-color-cream-100);
+  --color-text-accent: var(--global-color-orange-500);
+
+  /* Borders */
+  --color-border-subtle: var(--global-color-cream-300);
+  --color-border-strong: var(--global-color-ink-900);
+  --color-border-focus: var(--global-color-orange-500);
+
+  /* Functional spacing aliases */
+  --spacing-padding-xs: var(--global-space-2xs);
+  --spacing-padding-sm: var(--global-space-sm);
+  --spacing-padding-md: var(--global-space-md);
+  --spacing-padding-lg: var(--global-space-lg);
+  --spacing-padding-xl: var(--global-space-xl);
+  --spacing-gap-sm: var(--global-space-xs);
+  --spacing-gap-md: var(--global-space-sm);
+  --spacing-gap-lg: var(--global-space-md);
+  --spacing-section: var(--global-section-gap);
+
+  /* Prose rhythm: heading margins in em so heading→body spacing scales
+     with the heading's own size (typography drives vertical rhythm). */
+  --rhythm-heading-after: 0.5em;
+  --rhythm-heading-before: 1.5em;
+
+  /* Gutter density (scoped) — components consume --grid-gutter, resolved
+     locally from a named alias. Default density: base.
+     Naming is purpose-driven, not content-driven: 'flush' = tiles form
+     one composition; 'separated' = discrete objects. */
+  --grid-gutter: var(--global-gutter-base);
+  --grid-gutter-flush: var(--global-gutter-none);      /* one composition */
+  --grid-gutter-separated: var(--global-gutter-base);  /* discrete objects */
+  --grid-gutter-dense: var(--global-gutter-tight);     /* dense data */
+
+  /* Bento canvas primitives (wayfinder tickets 01–02).
+     Structural tokens for the shared Bento primitive. Placement decision:
+     extend tokens.css — bento tokens sit beside the globals they derive from.
+     Density is NOT redefined here: bento consumes the scoped gutter tokens
+     above (--grid-gutter + named densities) so there is one gutter scale.
+
+     Row unit: the canvas's row height = column width × --bento-unit-ratio.
+     The default ratio is 1 (square cells, ticket 01 Q2); a canvas overrides
+     it inline (e.g. the media strip's ≈0.44 fraction) — overrides modify
+     the default, never replace the mechanism. */
+  --bento-columns: 12;              /* canvas track count (12-of-12 standard) */
+  --bento-unit-ratio: 1;            /* row unit = column width × ratio */
+  --bento-radius-cell: var(--radius-media);
+  --bento-radius-max: 9999px;       /* circle finish */
+
+  /* Functional type aliases */
+  --type-body: var(--global-type-step-0);
+  --type-lede: var(--global-type-step-1);
+  --type-h4: var(--global-type-step-2);
+  --type-h3: var(--global-type-step-3);
+  --type-h2: var(--global-type-step-4);
+  --type-h1: var(--global-type-step-5);
+  --type-display: var(--global-type-step-6);
+  --type-hero: var(--global-type-step-7);
+
+  /* Functional radii */
+  --radius-control: var(--global-radius-pill);
+  --radius-card: var(--global-radius-lg);
+  --radius-media: var(--global-radius-lg); /* reference tiles read ~24px */
+  --radius-sheet: var(--global-radius-xl); /* the page sheet itself */
+}
+
+/* Fluid typography: scale up the root between breakpoints so every
+   rem-based token scales proportionally (vertical + horizontal scaling). */
+@media (min-width: 640px) {
+  :root {
+    font-size: 106.25%; /* 17px */
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    font-size: 112.5%; /* 18px */
+  }
+}
+
+/* Dark theme hook — opt-in via [data-theme="dark"] on <html>, not automatic.
+   Semantic tokens flip; globals stay put. */
+[data-theme='dark'] {
+  --color-bg-page: var(--global-color-ink-900);
+  --color-bg-surface: var(--global-color-ink-800);
+  --color-bg-muted: var(--global-color-ink-700);
+  --color-text-body: var(--global-color-cream-100);
+  --color-text-heading: var(--global-color-cream-50);
+  --color-text-muted: var(--global-color-cream-200);
+  --color-text-on-inverse: var(--global-color-ink-900);
+  --color-border-subtle: var(--global-color-ink-700);
+}

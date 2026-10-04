@@ -1,0 +1,98 @@
+---
+// TIER 2: BASE COMPONENT — Button
+// Pure primitive: no imports, no nested components, no hardcoded
+// colors or dimensions. All styling maps to semantic tokens.
+interface Props extends astroHTML.JSX.HTMLAttributes {
+  variant?: 'primary' | 'inverse' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  type?: 'button' | 'submit' | 'reset';
+  href?: string;
+}
+
+const {
+  variant = 'primary',
+  size = 'md',
+  type = 'button',
+  href,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const classes = ['btn', `btn--${variant}`, `btn--${size}`, className].filter(Boolean).join(' ');
+---
+
+{
+  href ? (
+    <a href={href} class={classes} {...rest}>
+      <slot />
+    </a>
+  ) : (
+    <button type={type} class={classes} {...rest}>
+      <slot />
+    </button>
+  )
+}
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-gap-sm);
+    font-family: inherit;
+    font-size: var(--type-body);
+    font-weight: var(--global-weight-medium);
+    line-height: var(--global-leading-tight);
+    text-decoration: none;
+    cursor: pointer;
+    border: var(--global-border-width-hairline) solid transparent;
+    border-radius: var(--radius-control);
+    transition:
+      background-color var(--global-duration-fast) var(--global-ease-out),
+      color var(--global-duration-fast) var(--global-ease-out),
+      border-color var(--global-duration-fast) var(--global-ease-out);
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* Sizes — padding from semantic spacing tokens */
+  .btn--sm {
+    padding: var(--spacing-padding-xs) var(--spacing-padding-md);
+  }
+  .btn--md {
+    padding: var(--spacing-padding-sm) var(--spacing-padding-lg);
+  }
+  .btn--lg {
+    padding: var(--spacing-padding-md) var(--spacing-padding-xl);
+    font-size: var(--type-lede);
+  }
+
+  /* Variants — colors from semantic color tokens */
+  .btn--primary {
+    background-color: var(--color-bg-brand);
+    color: var(--color-text-on-brand);
+  }
+  .btn--primary:hover {
+    background-color: var(--color-bg-brand-hover);
+  }
+
+  .btn--inverse {
+    background-color: var(--color-bg-inverse);
+    color: var(--color-text-on-inverse);
+  }
+  .btn--inverse:hover {
+    background-color: var(--color-text-muted);
+  }
+
+  .btn--ghost {
+    background-color: transparent;
+    color: var(--color-text-heading);
+    border-color: var(--color-border-strong);
+  }
+  .btn--ghost:hover {
+    background-color: var(--color-bg-muted);
+  }
+</style>
