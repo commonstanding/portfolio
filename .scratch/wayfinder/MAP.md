@@ -1,5 +1,8 @@
 # Wayfinder Map: Bento Grid System — Spec, Primitive Refactor & Agent Ecosystem
 
+> **ARCHIVED 05/10/2026.** This map is a decision record, not a live queue.
+> Live tickets are in `_tasks/` (see [`ARCHIVED.md`](../ARCHIVED.md)).
+
 **Label:** `wayfinder:map`
 **Status:** Closed (27/09/2026 — ticket 06)
 **Charted:** 2026-09-26
@@ -41,11 +44,13 @@ building future bentos from the spec.
 
 ## Decisions so far
 
-- [Vocabulary adopted (pre-map)](../../docs/spec-bento-nomenclature.md): five
+- Vocabulary adopted (pre-map): five
   terms — Canvas, Unit, Cell, Shape, Finish — with `c<start>-<end> r<start>-<end>`
   cell notation and three sizing strategies (content / row-unit / canvas).
-  *(Pre-map decision from the design conversation; the spec doc itself is
-  ticket 03's deliverable.)*
+  *(Pre-map decision from the design conversation. Now written up in
+  [`docs/spec-bento.md`](../../docs/spec-bento.md) §1 — the standalone
+  `spec-bento-nomenclature.md` referenced here never existed; the vocabulary
+  was folded into the spec itself, which was ticket 03's deliverable.)*
 - [01: Canvas model — flat 12-of-12](tickets/01-canvas-model-12-of-12.md):
   Option A flat canvas, canvas-coords-only notation, strict row alignment,
   per-canvas row unit with global square default (column-height = column-width)

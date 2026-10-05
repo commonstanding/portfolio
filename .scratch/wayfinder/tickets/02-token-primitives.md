@@ -1,6 +1,6 @@
 # 02: Token primitives — naming, placement, and the row-unit token
 
-**Status:** Open
+**Status:** Closed 27/09/2026
 **Type:** `wayfinder:grilling`
 **Blocks:** 04
 **Blocked by:** 01

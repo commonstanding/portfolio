@@ -1,6 +1,6 @@
 # Plan: adopt `.scratch/`, migrate tickets to `_tasks/`, archive scratch
 
-**Status:** Plan (proposed 04 Oct 2026) · **Author:** /orient session
+**Status:** COMPLETE (05 Oct 2026) · **Author:** /orient session
 **Decision it implements:** Dale — *"commit `.scratch/`, migrate the tickets to `_tasks/`
 and TASKS.md, and write a plan to capture/adopt/migrate all content in scratch and
 archive scratch."*
@@ -46,7 +46,7 @@ must be able to see *why* §9.1 and §9.2 disagree.
 - **Commit is the first human-pushable unit.** I do not push — deploy/push stays human
   per `AGENTS.md`.
 
-## Step 2 — Adopt the Standard's frontmatter for `_tasks/` (blocker for step 3)
+## Step 2 — Adopt the Standard's frontmatter for `_tasks/` ✅ DONE 05 Oct
 
 `_tasks/` is currently an empty tracked-ish directory. Migrate both ticket sets into it
 using the Standard's shape, `YYYYMMDD-NNN`:
@@ -92,7 +92,7 @@ blocked-by: []
 - [ ] `source:` field preserves the `.scratch/` provenance on every migrated file.
 - [ ] Blocking edges match the `.scratch/` `Blocked by` lines exactly.
 
-## Step 3 — Map to TASKS.md (blocker for step 4)
+## Step 3 — Map to TASKS.md ✅ DONE 05 Oct
 
 The four new spec-convergence tickets need entries in `TASKS.md` §9 (added this session)
 so they are visible from the portfolio-level queue, not just the repo. Existing §9 already
@@ -104,7 +104,7 @@ archived map.
 - [ ] §9 open bullets carry `20261004-00N` IDs and link to `_tasks/` files.
 - [ ] The wayfinder closure is recorded once in §9 as a single closed line, not seven.
 
-## Step 4 — Fix dangling references surfaced during migration (blocker for step 5)
+## Step 4 — Fix dangling references surfaced during migration ✅ DONE 05 Oct
 
 Two broken links found while inventorying `.scratch/`:
 
@@ -118,7 +118,7 @@ Two broken links found while inventorying `.scratch/`:
 - [ ] Spec ticket refs re-pointed to `_tasks/` IDs (or the spec keeps `.scratch/` refs,
       which is also valid since `.scratch/` stays tracked — pick one, be consistent).
 
-## Step 5 — Archive scratch (final, non-destructive)
+## Step 5 — Archive scratch ✅ DONE 05 Oct (non-destructive)
 
 `.scratch/` is **kept in git** (Dale's decision) and marked archived in place, so the
 history is versioned and searchable but does not read as a live queue:
@@ -154,3 +154,19 @@ moment step 2 lands and do not depend on this plan's later steps.
 - Creating the remote repo under `Duds`/`commonstanding` org per the repo-topology rule.
 - The three "needs you" decisions themselves (domain registration, `_tasks/` retention —
   now resolved in this plan — and the circle proof case).
+## Completion record (05 Oct 2026)
+
+All five steps landed. Two things differed from the plan as written:
+
+1. **`_tasks` is a symlink** to `10-COMMON-STANDING/_tasks/`, not a project-local
+   directory. Correct per the Standard — the files were written through the symlink, so
+   the live store is populated. Unchanged.
+2. **Two extra defects found and fixed.** The three stale tickets (02/03/04) had empty
+   `*(recorded on close)*` placeholders rather than resolutions, so each received a real
+   evidence-cited record. And flattening the ticket tree broke sibling links in the
+   migrated copies, plus a pre-existing dangling ref to `docs/spec-bento-nomenclature.md`
+   — all repointed. A link sweep across all 12 migrated files now returns clean.
+
+`_tasks/` holds 12 files. `TASKS.md` §9 carries `20261004-NNN` IDs. `.scratch/` retains
+all 13 files plus `ARCHIVED.md`, with banners on both maps. Build unaffected — doc-only
+changes throughout.

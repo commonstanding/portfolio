@@ -1,5 +1,8 @@
 # Spec Convergence — Bento, Gutter & Media-Strip Docs
 
+> **ARCHIVED 05/10/2026.** This map is a decision record, not a live queue.
+> Live tickets are in `_tasks/` (see [`ARCHIVED.md`](../ARCHIVED.md)).
+
 **Status:** Open
 **Charted:** 2026-10-04
 **Origin:** /orient session, 04 Oct 2026 — Dale approved `spec-bento.md` and asked to

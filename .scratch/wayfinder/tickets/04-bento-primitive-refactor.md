@@ -1,6 +1,6 @@
 # 04: Build the Bento primitive + tokens and refactor all three sections
 
-**Status:** Open
+**Status:** Closed 27/09/2026
 **Type:** `wayfinder:prototype`
 **Blocks:** 06
 **Blocked by:** 02, 03

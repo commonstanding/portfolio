@@ -1,6 +1,6 @@
 # 03: Write the Bento spec document
 
-**Status:** Open
+**Status:** Closed 27/09/2026
 **Type:** `wayfinder:task`
 **Blocks:** 05, 06
 **Blocked by:** 01, 02
