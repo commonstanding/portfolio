@@ -250,8 +250,8 @@ The breakpoint *structure* is fixed here; the per-section maps are cell-data con
 mask reversion) are built and browser-verified. **The tablet row is not implemented** —
 no 641–1023px rule exists and no per-breakpoint cell maps are declared in the cell data;
 canvases render their 12-col declaration through that range. The mobile rule carries the
-single-column flow, so nothing breaks at tablet; it is simply not re-tuned. Recorded as
-open in ticket `20261006-001` follow-ups rather than silently assumed.
+single-column flow, so nothing breaks at tablet; it is simply not re-tuned. Tracked as
+open ticket `20261006-002` (tablet 6-col cell maps) rather than silently assumed.
 
 ## 11. How to request a bento
 
