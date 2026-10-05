@@ -2,8 +2,9 @@
 
 > **ARCHIVED 05/10/2026.** This map is a decision record, not a live queue.
 > Live tickets are in `_tasks/` (see [`ARCHIVED.md`](../ARCHIVED.md)).
+> **CLOSED 06/10/2026** — all four tickets landed; see `_tasks/20261004-001` resolution.
 
-**Status:** Open
+**Status:** Closed (06/10/2026)
 **Charted:** 2026-10-04
 **Origin:** /orient session, 04 Oct 2026 — Dale approved `spec-bento.md` and asked to
 "clean up and/or write tickets".

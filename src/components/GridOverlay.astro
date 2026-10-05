@@ -128,7 +128,10 @@ const { columns = 12 } = Astro.props;
     padding-inline: var(--global-container-pad);
     display: grid;
     grid-template-columns: repeat(var(--global-grid-columns), minmax(0, 1fr));
-    gap: var(--global-grid-gutter);
+    /* Mirrors the page grid's base density via the scoped token (gutter spec §4.1).
+       Gutter bars themselves are measured from real column rects, never derived
+       from this value (spec §7). */
+    gap: var(--grid-gutter);
     visibility: hidden;
   }
 
@@ -406,6 +409,8 @@ const { columns = 12 } = Astro.props;
   .grid-widget__density-option {
     display: inline-flex;
     align-items: center;
+    /* Font-relative chrome gap (checkbox ↔ label), not a grid gutter —
+       exempt from gutter spec §4.2 by ruling (ticket 20261004-004). */
     gap: 0.3em;
     font-size: var(--global-type-step--2);
     cursor: pointer;

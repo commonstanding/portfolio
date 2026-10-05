@@ -1,6 +1,28 @@
 # Spec: Media Strip — Single-Image Multi-Mask Composition
 
-**Status:** Draft
+> **SUPERSEDED 06/10/2026** (ticket `20261004-004`). This spec shipped, then was replaced
+> by its own §2.1 destination: the hero strip is now a `mask`-finish **Bento canvas**
+> (12 × 4, 7 clip windows, one shared image) — see `docs/spec-bento.md` §9.1 and
+> `src/pages/index.astro`. The architecture this spec demanded proved out: tiles are
+> cell data, offset math derives from grid coordinates, one accessible image per
+> composition. What changed is that the 3-up "starting point" became the 7-cell bento
+> arrangement, so the implementation details below (§3.2 DOM, §3.3 mechanics, §8
+> criteria) describe markup that no longer exists.
+>
+> **Carried forward into `spec-bento.md` §12:** one accessible image per mask
+> composition; flush dissolves to separated at ≤640px; no hardcoded offset literals;
+> data-driven cell geometry (adding a mask = data edit).
+>
+> **Dropped with the 3-up shape:** "three tiles with identical shapes to today" (today
+> was the standalone 9-col grid, then the 3-up strip — both gone); the per-tile
+> `--tile-index` mechanic (replaced by `maskVars()` from declared tracks, spec §8);
+> §6's overlay impact (GridOverlay now measures real rects — see the gutter spec).
+>
+> **§7's own exit condition is fulfilled:** *"the multi-row bento evolution is the
+> designed destination (§2.1) but is a separate iteration"* — that iteration shipped
+> 27/09/2026 (wayfinder map) and was verified 06/10/2026.
+
+**Status:** Superseded — kept as the design rationale for the mask finish
 **Scope:** `section.media-strip` (hero media strip) in `src/pages/index.astro`
 **Depends on:** Scoped gutter tokens (`docs/spec-scoped-gutter-tokens.md`) — strip is `flush` density
 
@@ -154,3 +176,10 @@ Hover effects must remain **inset**. With a shared image, a per-tile zoom would 
 - [ ] At ≤640px, tiles revert to independent full-bleed crops with tight separation.
 - [ ] Overlay hover-inspect reports `div.media-strip__tile` boxes.
 - [ ] **Bento-ready:** tiles are generated from a data array; adding a fourth mask (or changing a tile's geometry) requires a data edit only — no new markup patterns, no change to the offset-math approach.
+
+*Disposition (06/10/2026): boxes above are not open work. Criteria 2–5 and 7 were
+verified at ship time (27/09/2026 wayfinder ticket 06) and re-verified against the bento
+canvas on 06/10/2026: one `alt` across the composition, per-cell hover scale inside
+`overflow: hidden`, flush→separated at ≤640px, mask cells from the `cells` array with
+offsets derived from declared tracks (`maskVars()`). Criteria 1 and 6 are dead with the
+3-up markup they describe.*

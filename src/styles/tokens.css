@@ -114,8 +114,8 @@
   --global-gutter-tight: 0.5rem;  /*  8px — dense data layouts */
   --global-gutter-base: 1.5rem;   /* 24px — default page grid */
   --global-gutter-loose: 2.5rem;  /* 40px — airy editorial layouts */
-  /* DEPRECATED: alias kept for one release; do not consume directly. */
-  --global-grid-gutter: var(--global-gutter-base);
+  /* --global-grid-gutter alias removed 06/10/2026 (gutter spec §8 step 4): last
+     consumer was GridOverlay's column grid, now migrated to --grid-gutter. */
 
   /* Breakpoints (used in media queries; CSS vars can't drive @media) */
   /* 640px / 768px / 1024px / 1280px */

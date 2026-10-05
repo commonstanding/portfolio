@@ -1,8 +1,57 @@
 # Spec: Scoped Gutter Tokens
 
-**Status:** Draft
+**Status:** Implemented — reconciled 06/10/2026 (ticket `20261004-004`). Was `Draft`
+while the work it describes had already shipped. §8 steps 1–5 complete; §9 acceptance
+recorded below against the bento canvas that now consumes these tokens.
 **Scope:** Grid system gutter density — tokens, components, overlay
 **Supersedes:** Global-only `--global-grid-gutter` usage in layout components
+
+## Status reconciliation (06/10/2026)
+
+**Migration plan (§8), all five steps done:**
+
+1. ✅ Global density tokens added; alias created.
+2. ✅ Consumers migrated to `--grid-gutter` (page grids, Bento, SearchBar where applicable).
+3. ✅ `density` prop on the Bento canvas (`flush` / `separated` / `dense`); hero strip,
+      work gallery, and benefits all set to `flush`. Mechanism note (06/10/2026, ticket
+      `20261006-001`): density is exposed as `data-density` and resolved through
+      `:where()` rules, **not** an inline custom property — an inline `--grid-gutter`
+      beats the ≤640px dissolve rule and silently disabled flush dissolution. §4.1's
+      "sets `gap: var(--grid-gutter)`" still holds; only the resolution site moved.
+4. ✅ **`--global-grid-gutter` deleted 06/10/2026.** Last consumer was `GridOverlay`'s
+      own column grid; migrated to `--grid-gutter` (same resolved value, 24px —
+      behaviour-preserving). No references remain in `src/`.
+5. ✅ Overlay gutter label shows the computed gap (`data-width` = measured px, plus the
+      density name when a preview is active).
+
+**Two rulings recorded against §4.2 / §7:**
+
+- **GridOverlay's own `gap`** (its column-grid layer) consumes `--grid-gutter` like any
+  pattern. This is consistent with §7's "measure, don't derive" rule: the *gutter bars*
+  are measured from real column rects in JS, but the overlay's column grid must exist at
+  some gap to produce those rects — and it mirrors the page grid's base density, so the
+  scoped token is the correct source. The deprecated alias is gone.
+- **`gap: 0.3em` in the inspector widget** (`.grid-widget__density-option`, checkbox ↔
+  label) is **exempt**: it is font-relative chrome, not a grid gutter. §4.2's prohibition
+  targets layout gutters; scaling with the label's own type size is the requirement here.
+  Annotated in place.
+
+**§9 acceptance, verified against the bento canvas:**
+
+- [x] No component stylesheet contains a literal gap value or `--global-gutter-*`
+      reference — except the exempted widget-chrome `0.3em` above.
+- [x] Hero media strip and work gallery render with 0px gaps at desktop widths
+      (`density="flush"`).
+- [x] Benefits grid: **criterion superseded.** It said "24px gaps (unchanged)" — written
+      when benefits was a separated card grid. The bento refactor made it a flush canvas
+      (bento spec §9.3 is authoritative: *"12 cols × 2 rows, square unit, flush"*); the
+      cards separate via their own radius/inset, not the gutter.
+- [x] At ≤640px, mosaic grids regain ≥8px separation (Bento dissolves flush → `dense`,
+      8px).
+- [x] Overlay gutter bars align pixel-exactly in both densities (measured from real
+      rects, recomputed on resize via ResizeObserver).
+- [x] Hover effects in mosaic grids do not bleed into adjacent tiles (`overflow: hidden`
+      clip; inset scale verified in wayfinder ticket `20260927-007`).
 
 ---
 

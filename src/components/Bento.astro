@@ -55,12 +55,6 @@ const {
 
 const COLUMNS = 12; // spec §2: flat 12-of-12, single coordinate system
 
-const densityAlias: Record<string, string> = {
-  flush: 'var(--grid-gutter-flush)',
-  separated: 'var(--grid-gutter-separated)',
-  dense: 'var(--grid-gutter-dense)',
-};
-
 // Mask offset math (spec §8) — derived from declared track counts only.
 function maskVars(cell: BentoCell) {
   const maskCols = cell.c[1] - cell.c[0] + 1;
@@ -81,7 +75,8 @@ function radiusVars(cell: BentoCell) {
 
 <section
   class:list={['bento', className]}
-  style={`--bento-rows: ${rows}; --bento-unit-ratio: ${ratio}; --grid-gutter: ${densityAlias[density]};`}
+  data-density={density}
+  style={`--bento-rows: ${rows}; --bento-unit-ratio: ${ratio};`}
   aria-label={ariaLabel}
 >
   {
@@ -154,7 +149,21 @@ function radiusVars(cell: BentoCell) {
     /* Row-unit strategy (spec §3): aspect-ratio gives the 1fr rows a
        definite block size. grid-auto-rows with % collapses — do not use. */
     aspect-ratio: 12 / calc(var(--bento-rows) * var(--bento-unit-ratio));
+    /* Density resolves via data attribute + :where() (zero specificity) so the
+       mobile dissolve below wins by order, not !important. Inline custom
+       properties would beat the media rule — defect 20261006-001/1. */
+    --grid-gutter: var(--grid-gutter-separated); /* default density */
     gap: var(--grid-gutter); /* density consumed via scoped token only */
+  }
+
+  .bento:where([data-density='flush']) {
+    --grid-gutter: var(--grid-gutter-flush);
+  }
+  .bento:where([data-density='separated']) {
+    --grid-gutter: var(--grid-gutter-separated);
+  }
+  .bento:where([data-density='dense']) {
+    --grid-gutter: var(--grid-gutter-dense);
   }
 
   .bento__cell {
@@ -233,7 +242,11 @@ function radiusVars(cell: BentoCell) {
       --grid-gutter: var(--grid-gutter-dense);
     }
 
-    .bento__cell {
+    /* Slots too (defect 20261006-001/2): card-slot siblings carry inline
+       12-col placement; without this they reference track lines beyond the
+       4-track mobile substrate and generate implicit columns. */
+    .bento__cell,
+    .bento__card-slot {
       grid-column: 1 / -1 !important;
       grid-row: auto !important;
     }

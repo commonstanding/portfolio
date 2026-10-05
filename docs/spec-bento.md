@@ -163,34 +163,40 @@ All windows stay in register because every cell renders the same canvas-sized im
 
 ## 9. Worked examples
 
-### 9.1 Media strip — 12 cols × 3 rows, square unit, flush, mask finish
+### 9.1 Media strip — 12 cols × 4 rows, square unit, flush, mask finish
 
 ```
-┌────┬────────┬──────────┬───────────┬───────────┐
-│ c1 │ c2-5   │  c6-9    │  c10-12   │           │
-│ r1 │ r1-2   │  r1-2    │  r1-3     │           │
-├────┼────────┼──────────┤ (full-    │           │
-│ c1 │ c2-5   │  c6-9    │  height)  │           │
-│r2-3│ r3     │  r3      │           │           │
-└────┴────────┴──────────┴───────────┴───────────┘
+┌────┬──────────┬──────────┬─────────┐
+│ c1 │          │          │         │
+│ r1 │  c2-5    │  c6-9    │ c10-12  │
+│    │  r1-3    │  r1-2    │  r1-4   │
+│    │          │          │         │
+│ c1 ├──────────┤          │         │
+│r2-4│  c2-5    │  c6-9    │         │
+│    │   r4     │  r3-4    │         │
+└────┴──────────┴──────────┴─────────┘
 ```
 
 | Cell | Notation | Shape | Finish | Notes |
 |------|----------|-------|--------|-------|
-| 1 | `c1-1 r1-1` | unit | mask, circle | carries the alt |
-| 2 | `c1-1 r2-3` | tall | mask | r0: [3] |
-| 3 | `c2-5 r1-2` | block | mask | r0: [4] |
-| 4 | `c2-5 r3-3` | bar | mask | r0: [1,2] |
-| 5 | `c6-9 r1-1` | bar | mask | |
-| 6 | `c6-6 r2-3` | tall | mask | r0: [1,2] |
-| 7 | `c7-9 r2-3` | block | mask | r0: [1] |
-| 8 | `c10-12 r1-3` | field | mask | r0: [3] |
+| 1 | `c1-1 r1-1` | unit | mask | r0: [3,4]; carries the alt |
+| 2 | `c1-1 r2-4` | tall (3-unit) | mask | r0: [1,2,3] |
+| 3 | `c2-5 r1-3` | field | mask | r0: [3,4] |
+| 4 | `c2-5 r4-4` | bar | mask | r0: [1,2] |
+| 5 | `c6-9 r1-2` | field | mask | r0: [3,4] |
+| 6 | `c6-9 r3-4` | field | mask | r0: [1,2] |
+| 7 | `c10-12 r1-4` | field (full-height) | mask | r0: [1,4] |
 
-Total cell area: 1+2+4+2+3+2+4+9 = 27 = 12 × 3 ✓
+Total cell area: 1+3+12+4+8+8+12 = 48 = 12 × 4 ✓
+
+*The 8-cell 12 × 3 packing this section previously documented was superseded by the
+mega-column re-pack (4-col = ⅓ canvas) now in `src/pages/index.astro`; the circle finish
+on cell 1 was lost in that pass — see §7's circle status note and ticket `20261004-005`.*
 
 ### 9.2 Work gallery — 12 cols × 3 rows, square unit, flush
 
-Label card `c1-3 r1-3` (card finish); mosaic `c4-12` (9 cells, as implemented in `src/pages/index.astro` after the ticket 06 round-trip test):
+Label card `c1-3 r1-3` (card finish); mosaic `c4-12` (8 crop cells — 9 cells on the
+canvas, as implemented in `src/pages/index.astro` after the ticket 06 round-trip test):
 
 | Cell | Notation | Shape | Finish |
 |------|----------|-------|--------|
@@ -199,12 +205,18 @@ Label card `c1-3 r1-3` (card finish); mosaic `c4-12` (9 cells, as implemented in
 | 2 | `c6-6 r1-2` | tall | crop |
 | 3 | `c4-5 r2-2` | wide | crop |
 | 4 | `c7-12 r1-1` | bar | crop |
-| 5 | `c7-9 r2-2` | unit | crop |
-| 6 | `c10-12 r2-3` | block | crop |
+| 5 | `c7-9 r2-2` | bar | crop |
+| 6 | `c10-12 r2-3` | field | crop |
 | 7 | `c4-6 r3-3` | bar | crop |
-| 8 | `c7-9 r3-3` | unit | crop |
+| 8 | `c7-9 r3-3` | bar | crop |
 
-Total cell area: 9+2+2+2+6+1+6+3+1 = 32 = 12 × 3 ✓ (label + 8 crop cells; the earlier 7-cell variant — label, block `c4-6 r1-2`, bar `c7-12 r1-1`, unit, block, bar, unit — also totalled 32 and remains a valid alternative packing.)
+Total cell area: 9+2+2+2+6+3+6+3+3 = 36 = 12 × 3 ✓
+
+*This section's arithmetic was wrong twice over: the itemisation counted cells 5 and 8 as
+area 1 (`unit`) when `c7-9 r2-2` and `c7-9 r3-3` are 3 tracks × 1 row = 3 each, and it
+then asserted `32 = 12 × 3` — which cannot hold. The earlier 7-cell variant (label, block
+`c4-6 r1-2`, bar `c7-12 r1-1`, and four smaller cells) remains a valid alternative
+packing; its recorded "32" total was part of the same miscount and should not be trusted.*
 
 ### 9.3 Benefits — 12 cols × 2 rows, square unit, flush
 
@@ -233,6 +245,13 @@ Three breakpoints (ticket 01 Q7), with per-breakpoint cell maps declared in the 
 | Mobile ≤640px | 4 | single-column flow; flush dissolves to separated; mask cells revert to independent crops |
 
 The breakpoint *structure* is fixed here; the per-section maps are cell-data content (ticket 04).
+
+**Implementation status (06/10/2026):** desktop (12) and mobile (4, with flush dissolve +
+mask reversion) are built and browser-verified. **The tablet row is not implemented** —
+no 641–1023px rule exists and no per-breakpoint cell maps are declared in the cell data;
+canvases render their 12-col declaration through that range. The mobile rule carries the
+single-column flow, so nothing breaks at tablet; it is simply not re-tuned. Recorded as
+open in ticket `20261006-001` follow-ups rather than silently assumed.
 
 ## 11. How to request a bento
 
@@ -263,12 +282,30 @@ Validation gates: total cell area = columns × rows; no overlapping cells; exact
 
 ## 12. Acceptance criteria
 
-- [ ] Every bento canvas declares 12 columns and a row count; no nested grids.
-- [ ] Row height = column width × declared ratio, verified by measurement at two viewport widths.
-- [ ] Total cell area equals columns × rows for every canvas (no dead zones, no zero-height cells).
-- [ ] No component stylesheet contains a literal gap value or raw `--global-gutter-*` reference.
-- [ ] Fractional shapes are expressed as integer track spans / refined row counts — no fractional coordinates anywhere.
-- [ ] Mask offset math derives from declared track counts; no hardcoded 9/7/3 literals in the formula.
-- [ ] Exactly one accessible image per mask composition.
-- [ ] Flush compositions dissolve to separated at ≤640px.
-- [ ] `npx astro build` passes; rendered sections match the worked examples (§9) by screenshot.
+Verified 06/10/2026 (tickets `20261004-003`, `20261006-001`), computed-style measurement
+at 1280 / 1024 / 390px against the live page:
+
+- [x] Every bento canvas declares 12 columns and a row count; no nested grids.
+- [x] Row height = column width × declared ratio, verified by measurement at two viewport
+      widths — holds for the image canvases (media strip: 99.4px row = 99.4px col at
+      1280px; 79px = 79px at 1024px; work gallery likewise). **Accepted divergence:** the
+      benefits canvas's rows stretch beyond the square unit (324px vs 198.8px declared at
+      1280px) because card content has an intrinsic minimum height; the aspect-ratio is a
+      floor, not a cap. Image canvases are unit-governed; content canvases are
+      content-governed.
+- [x] Total cell area equals columns × rows for every canvas (no dead zones, no
+      zero-height cells) — exhaustive tiling check: 48/48, 36/36, 24/24 covered, zero
+      overlaps.
+- [x] No component stylesheet contains a literal gap value or raw `--global-gutter-*`
+      reference (widget-chrome `0.3em` exempted — gutter spec §4.2 ruling).
+- [x] Fractional shapes are expressed as integer track spans / refined row counts — no
+      fractional coordinates anywhere.
+- [x] Mask offset math derives from declared track counts; no hardcoded 9/7/3 literals in
+      the formula (`maskVars()`).
+- [x] Exactly one accessible image per mask composition — measured: 7 imgs, 1 alt, 6
+      `aria-hidden`.
+- [x] Flush compositions dissolve to separated at ≤640px — was BROKEN (inline gutter beat
+      the media rule; card slots overflowed the mobile substrate). Fixed 06/10/2026 via
+      `data-density` + `:where()` and slot placement override; ticket `20261006-001`.
+- [x] `npx astro build` passes; rendered sections match the worked examples (§9) — DOM
+      placements extracted from `dist/index.html` match §9.1/§9.2/§9.3 cell for cell.
