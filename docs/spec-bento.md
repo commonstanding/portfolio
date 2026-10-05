@@ -116,7 +116,16 @@ Shapes are *descriptions* of the span pattern; the coordinates are authoritative
 **Finish words in requests are validated against the canvas's finish context.** A plain-English word like "mask" is ambiguous: it may mean the mask *finish* (§8, requires the shared canvas image) or just a generic window-like tile. When a request uses a finish word, the interpreter resolves it against the target canvas — if the canvas has no `image` prop, "mask" cannot mean the mask finish and must be clarified (e.g. re-asked as "a window-like crop cell?") rather than silently downgraded.
 - **Density** — `flush` (0px, one composition) / `separated` (24px, discrete objects) / `dense` (8px). Consumed via `--grid-gutter` from the scoped gutter tokens; never a literal gap value.
 - **Radius overrides** — per-corner via `r0` (corners collapse to 0); default `--bento-radius-cell`.
-- **Circle** — `border-radius: var(--bento-radius-max)`. Under the square unit a 1×1 cell is exactly square, so radius-max reads as a true circle. Under a fractional unit the same finish reads as a stadium; exact square geometry is only forced under the square unit.
+- **Circle** — `border-radius: var(--bento-radius-max)`. Under the square unit a 1×1 cell is exactly square, so radius-max reads as a true circle. Under a fractional unit the same finish reads as a stadium; exact square geometry is only forced under the square unit. *Currently unexercised — see below.*
+
+> **Circle finish status (05 Oct 2026):** available but unused. No canvas in
+> `src/pages/index.astro` declares a `circle` cell, so the primitive's `circle` prop and
+> this finish are live API with no call site. Kept deliberately: it is part of the Finish
+> vocabulary, the round-trip test in §10 exercises it, and removing it would narrow the
+> vocabulary for a gap that is one prop away from being useful. Dale's decision, 05/10 —
+> ticket `20261004-005`. The historical circle cell (a 12 × 3 media-strip cell 1) was
+> lost in a later composition pass; the row-height caveat above is the only live
+> constraint on reusing it.
 
 ### 7.1 Flush-mode rules
 

@@ -20,10 +20,10 @@ re-deriving what changed.
 
 | # | Ticket | Blocked by | Status |
 |---|---|---|---|
-| 01 | [Reconcile wayfinder ticket status with ticket 06](tickets/01-reconcile-wayfinder-ticket-status.md) | — | ready |
+| 01 | [Reconcile wayfinder ticket status with ticket 06](tickets/01-reconcile-wayfinder-ticket-status.md) | — | **done** 05/10 |
 | 02 | [Sync spec §9 worked examples to built canvases](tickets/02-sync-spec-worked-examples.md) | — | ready |
 | 03 | [Retire media-strip spec as superseded](tickets/03-retire-media-strip-spec.md) | 01, 02 | ready |
-| 04 | [Circle finish proof case — decide or retire](tickets/04-circle-proof-case-decision.md) | — | ready |
+| 04 | [Circle finish proof case — decide or retire](tickets/04-circle-proof-case-decision.md) | — | **done** — kept prop, documented unused |
 
 ## Findings behind the tickets
 
