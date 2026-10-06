@@ -3,7 +3,8 @@
 **Subject:** `prototype/reference/reference01.png`, hero band (y 408–727)
 **Diagram:** [`prototype/reference/reference01-hero-cells.png`](../prototype/reference/reference01-hero-cells.png)
 **Date:** 07/10/2026
-**Status:** Analysis complete. Adoption decision open — see §8.
+**Status:** Analysis complete. Geometry **adopted** as the built hero 07/10/2026
+(`20261007-001` option A) — see §8.
 
 This document reproduces the reference hero in bento vocabulary (§7). It is an
 *observation* of a reference design, not a spec: `spec-bento.md` remains
@@ -245,30 +246,34 @@ and 25.5 px at the 641–1023 px root (17 px). At the reference's own desktop
 canvas width the token is within 1 px of the measured radius, so `--radius-media`
 reproduces this composition without a new token.
 
-## 8. How this differs from the built hero
+## 8. Adoption outcome
 
-| | Built (`spec-bento.md` §9.1) | reference01 hero |
+The reference geometry was **adopted as the built hero** on 07/10/2026
+(`_tasks/20261007-001`, option A). The table below is the *before* state — the
+12 × 4 hero that shipped until this decision — so the delta is preserved.
+
+| | Built before adoption | reference01 hero (now built) |
 |---|---|---|
-| Substrate | 12 × 4 | 12 × 6 |
-| Unit ratio | 1 (square) | 0.772 (sub-square) |
+| Substrate | 12 × 4 | **12 × 6** |
+| Unit ratio | 1 (square) | **0.772** (sub-square) |
 | Cells | 7 | 7 |
-| Area | 48 | 72 |
-| Column rhythm | 1 + 4 + 4 + 3 | 4 + 4 + 4 (three equal thirds) |
+| Area | 48 | **72** |
+| Column rhythm | 1 + 4 + 4 + 3 | **4 + 4 + 4** (three equal thirds) |
 | Density | flush | flush |
 | Finish | mask, one image | mask, one image |
 | Canvas silhouette | rounded TR/BL only | **square TL and BR** — pinched diagonal |
 | Square-corner count | 12 of 28 | 9 of 28 |
 
-Two things the reference does that the built hero does not:
+What the reference brought that the old hero did not have:
 
-1. **A fractional unit.** The built canvases all use ratio 1. The reference's
-   0.772 is a deliberate per-canvas override (`spec-bento.md` §3.2), and it is
-   what buys the 2.59:1 letterbox band from a 6 × 3 rhythm.
+1. **A fractional unit.** All previous canvases used ratio 1. The 0.772 is the
+   first live per-canvas override (`spec-bento.md` §3.2), and it is what buys
+   the 2.59:1 letterbox band from a 6 × 3 rhythm.
 2. **A hidden seam.** D/E1/E2 use squared corners to fuse three cells into one
-   visual column. The built hero squares corners only to close the shell. This
-   is a new compositional device, not a new vocabulary term.
+   visual column. The old hero squared corners only to close the shell. This is
+   a new compositional device, not a new vocabulary term.
 
-**Open decision (Dale):** adopt the reference composition as the hero, keep the
-built 12 × 4, or lift only the pinched-diagonal shell onto the current hero?
-Tracked as `_tasks/20261007-001`. Nothing in `spec-bento.md` needs to change to
-express this layout — the vocabulary already covers it, which is the point.
+Nothing in `spec-bento.md` needed to change to *express* the layout — the
+vocabulary already covered it, which was the point. §9.1 was rewritten to
+document the new geometry, and the `bento-spec` skill worked example synced with
+it (amendment log §13, 07/10/2026).

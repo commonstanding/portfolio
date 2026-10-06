@@ -24,7 +24,7 @@ Five terms. Each exists to kill a specific miscommunication.
 
 1. Every bento canvas spans the full container and declares **12 column tracks** (`--bento-columns: 12`). No sub-canvases. One coordinate system.
 2. Every cell is placed directly on the 12 columns. A section that visually "owns" fewer columns (e.g. the Work mosaic at c4-12) is still placed on the same substrate — its internal rhythm is expressed as cell spans, not a nested grid.
-3. Row count is declared **per canvas** (e.g. 3 rows for the media strip, 3 for the work grid). Rows are per-canvas; columns are global.
+3. Row count is declared **per canvas** (e.g. 6 rows for the media strip, 3 for the work grid). Rows are per-canvas; columns are global.
 4. **Strict row alignment:** one row rhythm per canvas. All cells in a row share the track. Independent rhythms = a second canvas, not a special case.
 
 ### 2.1 Fractional shapes
@@ -51,7 +51,7 @@ Fractions are resolved by the substrate, never written as fractional coordinates
 All three sections converge on the row-unit strategy (ticket 01 Q2):
 
 1. **Global default:** square — row height = column width (`--bento-unit-ratio: 1` in `tokens.css`).
-2. **Per-canvas override** *modifies* the default, never replaces the mechanism: a **fraction** (row = k × column width) or a **clamp** (min/max bounds on the square unit). Declared as an inline custom property on the canvas element.
+2. **Per-canvas override** *modifies* the default, never replaces the mechanism: a **fraction** (row = k × column width) or a **clamp** (min/max bounds on the square unit). Declared as an inline custom property on the canvas element. *First live use:* the media strip's `0.772` ratio (`spec-bento.md` §9.1), adopted from reference01 on 07/10/2026 — it is what buys the 2.59 : 1 letterbox band from a 6 × 3 visible rhythm. Before that every canvas used the square default.
 3. **CSS expression:** the canvas declares its geometry as an aspect-ratio so the 1fr rows resolve against a definite block size:
 
    ```css
@@ -73,7 +73,7 @@ c<start>-<end> r<start>-<end>
 
 - Inclusive ranges, canvas coordinates, 1-based.
 - **Spans are derived, never stated.** `c1-3` means 3 tracks wide; there is no separate span field in the notation.
-- Example: the media strip's full-height mask is `c10-12 r1-3`.
+- Example: the media strip's full-height mask is `c9-12 r1-6`.
 
 ## 5. Cell schema
 
@@ -163,35 +163,58 @@ All windows stay in register because every cell renders the same canvas-sized im
 
 ## 9. Worked examples
 
-### 9.1 Media strip — 12 cols × 4 rows, square unit, flush, mask finish
+### 9.1 Media strip — 12 cols × 6 rows, unit ratio 0.772, flush, mask finish
 
 ```
-┌────┬──────────┬──────────┬─────────┐
-│ c1 │          │          │         │
-│ r1 │  c2-5    │  c6-9    │ c10-12  │
-│    │  r1-3    │  r1-2    │  r1-4   │
-│    │          │          │         │
-│ c1 ├──────────┤          │         │
-│r2-4│  c2-5    │  c6-9    │         │
-│    │   r4     │  r3-4    │         │
-└────┴──────────┴──────────┴─────────┘
+┌───────────────┬───────────────┬───────────────┐
+│      A        │               │               │
+│  c1-4 r1-2    │      D        │       F       │
+├───────────────┤  c5-8 r1-4    │  c9-12 r1-6   │
+│      B        │               │               │
+│  c1-4 r3-4    │               │               │
+│               ├───────┬───────┤               │
+├───────────────┤   E1  │   E2  │               │
+│      C        │ c5-6  │ c7-8  │               │
+│  c1-4 r5-6    │ r5-6  │ r5-6  │               │
+└───────────────┴───────┴───────┴───────────────┘
 ```
 
 | Cell | Notation | Shape | Finish | Notes |
 |------|----------|-------|--------|-------|
-| 1 | `c1-1 r1-1` | unit | mask | r0: [3,4]; carries the alt |
-| 2 | `c1-1 r2-4` | tall (3-unit) | mask | r0: [1,2,3] |
-| 3 | `c2-5 r1-3` | field | mask | r0: [3,4] |
-| 4 | `c2-5 r4-4` | bar | mask | r0: [1,2] |
-| 5 | `c6-9 r1-2` | field | mask | r0: [3,4] |
-| 6 | `c6-9 r3-4` | field | mask | r0: [1,2] |
-| 7 | `c10-12 r1-4` | field (full-height) | mask | r0: [1,4] |
+| A | `c1-4 r1-2` | field | mask | r0: [1]; carries the alt |
+| B | `c1-4 r3-4` | field | mask | all corners rounded |
+| C | `c1-4 r5-6` | field | mask | r0: [3] |
+| D | `c5-8 r1-4` | field | mask | r0: [3,4] — 2×3 visible units |
+| E1 | `c5-6 r5-6` | block | mask | r0: [1,2] |
+| E2 | `c7-8 r5-6` | block | mask | r0: [1,2] |
+| F | `c9-12 r1-6` | field (full-height) | mask | r0: [3] |
 
-Total cell area: 1+3+12+4+8+8+12 = 48 = 12 × 4 ✓
+Total cell area: 8+8+8+16+4+4+24 = **72 = 12 × 6** ✓
 
-*The 8-cell 12 × 3 packing this section previously documented was superseded by the
-mega-column re-pack (4-col = ⅓ canvas) now in `src/pages/index.astro`; the circle finish
-on cell 1 was lost in that pass — see §7's circle status note and ticket `20261004-005`.*
+This is the reference01 hero geometry adopted on 07/10/2026 — reproduced in
+`docs/analysis-reference01-hero.md` (cream-mask IoU 0.716, 19/19 notches). Three
+things make it the spec's richest worked example:
+
+1. **First live per-canvas ratio override.** The unit is sub-square
+   (`--bento-unit-ratio: 0.772`), which buys the 2.59 : 1 letterbox band from a
+   6 × 3 visible rhythm (§3.2).
+2. **First live fractional-row substrate.** Cell D spans 2 columns × 3 rows of
+   the visible rhythm = 1.5 units tall, so the canvas is declared **12 × 6**
+   (not 6 × 3) and every cell uses integer tracks. No fractional coordinates
+   (§2.1).
+3. **Two compositional devices**, both pure vocabulary (no new terms):
+   - *Pinched diagonal shell* — the canvas silhouette is square at **TL** (A
+     r0 [1]) and **BR** (F r0 [3]), rounded at TR and BL. Two opposite square
+     corners read as a wedge aimed down the top-right→bottom-left diagonal.
+   - *Hidden seam* — D, E1 and E2 meet along the r4/r5 line with all four
+     corners squared (D [3,4], E1/E2 [1,2]). In a flush mask, a boundary is
+     only visible where a corner is rounded, so that seam shows **0 cream** and
+     the middle column reads as one image that forks into two only at the
+     baseline. Squared corners are how a tile declines to announce itself.
+
+*The 12 × 4 / area-48 mega-column packing this section previously documented was
+superseded by the reference01 geometry above (adoption decision `20261007-001`,
+option A). The circle finish remains available-but-unused (§7).*
 
 ### 9.2 Work gallery — 12 cols × 3 rows, square unit, flush
 
@@ -283,18 +306,21 @@ Validation gates: total cell area = columns × rows; no overlapping cells; exact
 ## 12. Acceptance criteria
 
 Verified 06/10/2026 (tickets `20261004-003`, `20261006-001`), computed-style measurement
-at 1280 / 1024 / 390px against the live page:
+at 1280 / 1024 / 390px against the live page. Media-strip criteria re-verified 07/10/2026
+after the reference01 adoption (`20261007-001`); the ratio, tiling and alt figures below
+are from that re-measurement:
 
 - [x] Every bento canvas declares 12 columns and a row count; no nested grids.
 - [x] Row height = column width × declared ratio, verified by measurement at two viewport
-      widths — holds for the image canvases (media strip: 99.4px row = 99.4px col at
-      1280px; 79px = 79px at 1024px; work gallery likewise). **Accepted divergence:** the
+      widths — holds for the image canvases (media strip: 99.4px col → 76.8px row at
+      1280px, ratio 0.772; 79.0px col → 61.0px row at 1024px; work gallery is square,
+      row = col). **Accepted divergence:** the
       benefits canvas's rows stretch beyond the square unit (324px vs 198.8px declared at
       1280px) because card content has an intrinsic minimum height; the aspect-ratio is a
       floor, not a cap. Image canvases are unit-governed; content canvases are
       content-governed.
 - [x] Total cell area equals columns × rows for every canvas (no dead zones, no
-      zero-height cells) — exhaustive tiling check: 48/48, 36/36, 24/24 covered, zero
+      zero-height cells) — exhaustive tiling check: 72/72, 36/36, 24/24 covered, zero
       overlaps.
 - [x] No component stylesheet contains a literal gap value or raw `--global-gutter-*`
       reference (widget-chrome `0.3em` exempted — gutter spec §4.2 ruling).
@@ -328,6 +354,10 @@ wins on divergence.
 | 06/10/2026 | §12 | All nine criteria ticked with measured evidence | Computed-style + pixel measurement at 1280/1440/1920/2560px; exhaustive tiling check (48/48, 36/36, 24/24, zero overlaps). Benefits row-stretch recorded as an accepted divergence (content-governed). |
 | 06/10/2026 | header | Convergence pointer `.scratch/…` → `_tasks/` | Tickets migrated to the Tasks & Wayfinder Standard home; `.scratch/` retained as the archived decision record. |
 | 06/10/2026 | skill | Worked examples + invariants 7–8 synced | Skill carried the stale 12×3 media strip and an incoherent work-gallery sum (`9+6+1+3+3+1 = 23`, then `23+9 = 32 = 12×3`). |
+| 07/10/2026 | §9.1 | Rewritten: 12×4 / square / area 48 → **12×6 / ratio 0.772 / area 72** | reference01 hero geometry adopted (`20261007-001` option A). First live per-canvas ratio override and fractional-row substrate; documents the pinched-shell and hidden-seam devices. Reproduced in `docs/analysis-reference01-hero.md` (IoU 0.716). |
+| 07/10/2026 | §2.1, §4 | Media-strip row/notation examples repointed to 12×6 | Cross-references cited the old 6×3-era figures ("3 rows for the media strip", "full-height mask is `c10-12 r1-3`"); now 6 rows and `c9-12 r1-6`. |
+| 07/10/2026 | §12 | Measured evidence updated | Ratio check now cites 99.4→76.8px (0.772) at 1280px and 79.0→61.0px at 1024px; tiling check 48/48 → **72/72**. Re-measured live, not asserted. |
+| 07/10/2026 | skill | Media-strip worked example synced to 12×6 | Skill must track the spec (§13); carried the superseded 12×4 packing. |
 
 **Open questions parked for Dale:** none outstanding. `20261006-002` (tablet cell maps)
 awaits design sign-off on the three per-section 6-track maps.

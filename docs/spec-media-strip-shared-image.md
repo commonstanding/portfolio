@@ -2,7 +2,7 @@
 
 > **SUPERSEDED 06/10/2026** (ticket `20261004-004`). This spec shipped, then was replaced
 > by its own §2.1 destination: the hero strip is now a `mask`-finish **Bento canvas**
-> (12 × 4, 7 clip windows, one shared image) — see `docs/spec-bento.md` §9.1 and
+> (12 × 6, unit ratio 0.772, 7 clip windows, one shared image) — see `docs/spec-bento.md` §9.1 and
 > `src/pages/index.astro`. The architecture this spec demanded proved out: tiles are
 > cell data, offset math derives from grid coordinates, one accessible image per
 > composition. What changed is that the 3-up "starting point" became the 7-cell bento
