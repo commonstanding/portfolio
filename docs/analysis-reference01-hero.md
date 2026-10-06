@@ -40,10 +40,10 @@ A closed loop between pixel measurement and visual reading, five passes:
    scored by IoU. The nine square corners score IoU 0.00 at every radius —
    there is no cream in their quadrant box at all, so that classification is
    unambiguous. The nineteen rounded corners each have a notch present, with
-   best-fit radii clustered in 26–28 px; a handful read lower on IoU because a
+   best-fit radii clustered in 25–28 px; a handful read lower on IoU because a
    neighbouring rounded corner shares the same vertex and partly occludes the
    notch (E1's BL is the weakest). The global fit (§1 step 5) peaks at radius
-   27–28. So the radius is ~27 px everywhere, with per-corner confidence
+   28. So the radius is ~28 px everywhere, with per-corner confidence
    highest where a notch stands alone.
 5. **Validate the whole model.** The seven cells plus their `r0` lists were
    rendered as a predicted cream mask and compared to the actual one:
@@ -69,7 +69,7 @@ one adjacent corner is rounded — holds at **10/10** vertices.
 | Canvas aspect | 2.591 | 829 / 320 = 12 / (6 × 0.772) |
 | Density | **flush** (0 px) | no cream along any boundary except at corners |
 | Finish | **mask**, one shared image | seam continuity, §5 |
-| Radius | **27 px** ≈ 3.3 % of canvas width | template fit, §1 |
+| Radius | **28 px** ≈ 3.4 % of canvas width | template fit, §1 |
 
 **Why 12 × 6 and not 6 × 3.** One tile spans 2 columns × 3 rows. On a 3-row
 substrate that is a 1.5-unit height — a fractional row, which `spec-bento.md`
@@ -129,7 +129,7 @@ The left column (A, B, C) is the mirror of this: every boundary is visible
 (A `[1]` only, B none, C `[3]` only), so it reads as three stacked bars, while
 the middle reads as one column and the right as one slab.
 
-**Full corner table** (R = rounded ≈27 px, S = square, measured at tolerance 8/10/12/14 — all three agree):
+**Full corner table** (R = rounded, per-corner best-fit radius in px, S = square; classification measured at tolerance 8/10/12/14 — all four agree):
 
 | Cell | TL | TR | BR | BL |
 |---|---|---|---|---|
@@ -181,8 +181,8 @@ squared corners are only needed where a tile must *not* announce itself.
   ≥ 60 px. Eleven hug a grid vertex within 5–14 px — those are the notches the
   model predicts. Two do not: 248 px centred at (600,552) and 113 px at
   (732,538), which sit **37 px and 30 px** from the nearest vertex. A flush
-  mosaic with radius 27 cannot place cream that far from a corner — the notch
-  lives inside the 27 × 27 box at the vertex — so these are bright warm
+  mosaic with radius 28 cannot place cream that far from a corner — the notch
+  lives inside the 28 × 28 box at the vertex — so these are bright warm
   highlights in the photograph, not gutters. They are also compact (aspect 1.38
   and 1.06) rather than elongated along the seam as a real gutter would be, and
   leaf-shaped with soft JPEG edges.
@@ -215,7 +215,7 @@ squared corners are only needed where a tile must *not* announce itself.
 Request form, per `spec-bento.md` §11 grammar (canvas → cells → density → content):
 
 ```
-Canvas 12 cols × 6 rows, unit ratio 0.772, radius 27px (3.3% of canvas width)
+Canvas 12 cols × 6 rows, unit ratio 0.772, radius 28px (3.4% of canvas width)
   c1-4  r1-2   field  mask   r0:[1]        alt: <shared image description>
   c1-4  r3-4   field  mask
   c1-4  r5-6   field  mask   r0:[3]
@@ -239,10 +239,11 @@ Mask offset math, from invariant 5 with C = 12, R = 6:
 | E2 | 2 × 2 | 6, 4 | 600 % × 300 % | −300 %, −200 % |
 | F | 4 × 6 | 8, 0 | 300 % × 100 % | −200 %, 0 % |
 
-Radius as a token: 27 px on an 829 px canvas is 3.26 % of width. The site's
-`--radius-media` is `1.5rem` = 24 px at a 16 px root (25.5 px at the 17 px
-≥640px root). At the reference's own canvas width the two are within ~2 px, so
-`--radius-media` reproduces this composition without a new token.
+Radius as a token: 28 px on an 829 px canvas is 3.4 % of width. The site's
+`--radius-media` is `1.5rem`, which renders 27 px at the ≥1024 px root (18 px)
+and 25.5 px at the 641–1023 px root (17 px). At the reference's own desktop
+canvas width the token is within 1 px of the measured radius, so `--radius-media`
+reproduces this composition without a new token.
 
 ## 8. How this differs from the built hero
 
