@@ -113,12 +113,12 @@ corner: TL 0 px, BR 0 px, TR 21 px, BL 24 px. A rectangle with two opposite
 square corners reads as a wedge aimed down the top-right-to-bottom-left
 diagonal — the composition points rather than sits.
 
-**4.2 A hidden seam.** D, E1 and E2 meet with *all four* corners squared
-(D `[3,4]`, E1 `[1,2]`, E2 `[1,2]`). Nothing is visible along that boundary:
-the horizontal probe at r1/r2 across columns 5–8 returns **0 cream pixels**,
-and the vertical probe at c3 row 2 likewise returns 0. So D + E1 + E2 read as
-one uninterrupted 4 × 6 column of image, split only where the eye chooses to
-look. The blocks are structural, not visual.
+**4.2 A hidden seam.** D sits above E1 and E2, and the four corners meeting at
+their shared horizontal edge are all squared (D's BL/BR, E1's and E2's TL/TR).
+Nothing is visible along that boundary: the probe across the middle columns at
+the D-over-E line returns **0 cream pixels**. So D + E1 + E2 read as one
+uninterrupted column of image, split only where the eye chooses to look. The
+blocks are structural, not visual.
 
 **4.3 Split only at the bottom.** E1 and E2 share that invisible top edge but
 separate visibly at the bottom — E1/E2 corners 3 and 4 are both rounded, so
