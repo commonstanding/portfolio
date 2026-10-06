@@ -1,6 +1,6 @@
 # Spec: Bento Grid System
 
-**Status:** Approved (04 Oct 2026) — built against by ticket 04; verified and closed by ticket 06 (27/09/2026). Post-approval convergence tracked in `.scratch/spec-convergence/tickets/`.
+**Status:** Approved (04 Oct 2026) — built against by ticket 04; verified and closed by ticket 06 (27/09/2026). Post-approval convergence tracked in `_tasks/` (`20261004-*`, `20261006-*`); the archived originals remain in `.scratch/spec-convergence/`.
 **Depends on:** Scoped gutter tokens (`spec-scoped-gutter-tokens.md`), bento token primitives in `src/styles/tokens.css`
 **Approved:** 04 Oct 2026 by Dale. The primitive (ticket 04) was built against this spec and browser-verified.
 
@@ -309,3 +309,25 @@ at 1280 / 1024 / 390px against the live page:
       `data-density` + `:where()` and slot placement override; ticket `20261006-001`.
 - [x] `npx astro build` passes; rendered sections match the worked examples (§9) — DOM
       placements extracted from `dist/index.html` match §9.1/§9.2/§9.3 cell for cell.
+
+## 13. Amendment log
+
+Dated amendments with one-line rationale. Consult before curating so amendments stay
+consistent. The `bento-spec` skill (`~/.agents/skills/bento-spec/SKILL.md`) carries a copy
+of the worked examples and invariants; it is amended in step with this spec — this spec
+wins on divergence.
+
+| Date | Section | Amendment | Rationale |
+|---|---|---|---|
+| 04/10/2026 | header | Status `Draft for review` → `Approved`; pre-approval gate removed | Dale approved; ticket 04 had already built against it and ticket 06 verified. |
+| 05/10/2026 | §7 | Circle finish marked **available-but-unused** | No canvas declares a `circle` cell after the media-strip re-pack; Dale ruled the prop stays (ticket `20261004-005`). |
+| 06/10/2026 | §9.1 | Rewritten: 12×3 / 8 cells / area 27 → **12×4 / 7 cells / area 48** | The mega-column re-pack in `src/pages/index.astro` superseded the original packing; the spec was two composition generations behind (ticket `20261004-003`). |
+| 06/10/2026 | §9.2 | Arithmetic corrected: `…+1+6+3+1 = 32 = 12×3` → `…+3+6+3+3 = 36 = 12×3` | Cells 5 and 8 are 3 tracks × 1 row = area 3 each, itemised as 1; and 32 ≠ 36, so the assertion could not hold. Shape names corrected (unit→bar, block→field). |
+| 06/10/2026 | §10 | Tablet row annotated **not implemented** | No 641–1023px rule exists; canvases scale their 12-col declaration through the band. Functional, not re-tuned. Tracked as `20261006-002`. |
+| 06/10/2026 | §7, §10, §12 | "dissolves to **separated**" → "dissolves to **`dense` (8px)**" | `separated` is overloaded — the 24px alias name and a loose adjective. Implementation dissolves to `--grid-gutter-dense` (8px), matching the gutter spec §5 example. Same correction in `spec-scoped-gutter-tokens.md` and `spec-media-strip-shared-image.md`. |
+| 06/10/2026 | §12 | All nine criteria ticked with measured evidence | Computed-style + pixel measurement at 1280/1440/1920/2560px; exhaustive tiling check (48/48, 36/36, 24/24, zero overlaps). Benefits row-stretch recorded as an accepted divergence (content-governed). |
+| 06/10/2026 | header | Convergence pointer `.scratch/…` → `_tasks/` | Tickets migrated to the Tasks & Wayfinder Standard home; `.scratch/` retained as the archived decision record. |
+| 06/10/2026 | skill | Worked examples + invariants 7–8 synced | Skill carried the stale 12×3 media strip and an incoherent work-gallery sum (`9+6+1+3+3+1 = 23`, then `23+9 = 32 = 12×3`). |
+
+**Open questions parked for Dale:** none outstanding. `20261006-002` (tablet cell maps)
+awaits design sign-off on the three per-section 6-track maps.
