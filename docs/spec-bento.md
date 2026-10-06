@@ -135,7 +135,7 @@ Patterns opting into `flush` must (from `spec-scoped-gutter-tokens.md` §6):
 2. Hover/focus effects are inset (no outlines or external shadows — they bleed into neighbours).
 3. Text tiles carry internal padding; they may not rely on the absent gutter.
 4. Interactive tiles meet WCAG 2.2 target-spacing via internal padding or affordances.
-5. Flush dissolves to separated at single-column (≤640px): zero-gap stacked tiles read as broken.
+5. Flush dissolves to a non-zero gutter at single-column (≤640px) — **`dense` (8px)**, not the 24px `separated` alias: zero-gap stacked tiles read as broken.
 
 ## 8. Mask finish (shared-image clip windows)
 
@@ -242,7 +242,7 @@ Three breakpoints (ticket 01 Q7), with per-breakpoint cell maps declared in the 
 |-----------|---------|-----------|
 | Desktop ≥1024px | 12 | as declared |
 | Tablet 641–1023px | 6 | cells re-declare on 6 tracks |
-| Mobile ≤640px | 4 | single-column flow; flush dissolves to separated; mask cells revert to independent crops |
+| Mobile ≤640px | 4 | single-column flow; flush dissolves to `dense` (8px); mask cells revert to independent crops |
 
 The breakpoint *structure* is fixed here; the per-section maps are cell-data content (ticket 04).
 
@@ -304,7 +304,7 @@ at 1280 / 1024 / 390px against the live page:
       the formula (`maskVars()`).
 - [x] Exactly one accessible image per mask composition — measured: 7 imgs, 1 alt, 6
       `aria-hidden`.
-- [x] Flush compositions dissolve to separated at ≤640px — was BROKEN (inline gutter beat
+- [x] Flush compositions dissolve to `dense` (8px) at ≤640px — was BROKEN (inline gutter beat
       the media rule; card slots overflowed the mobile substrate). Fixed 06/10/2026 via
       `data-density` + `:where()` and slot placement override; ticket `20261006-001`.
 - [x] `npx astro build` passes; rendered sections match the worked examples (§9) — DOM

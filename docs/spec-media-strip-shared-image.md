@@ -10,7 +10,7 @@
 > criteria) describe markup that no longer exists.
 >
 > **Carried forward into `spec-bento.md` §12:** one accessible image per mask
-> composition; flush dissolves to separated at ≤640px; no hardcoded offset literals;
+> composition; flush dissolves to `dense` (8px) at ≤640px; no hardcoded offset literals;
 > data-driven cell geometry (adding a mask = data edit).
 >
 > **Dropped with the 3-up shape:** "three tiles with identical shapes to today" (today

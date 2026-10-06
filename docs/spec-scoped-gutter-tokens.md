@@ -162,7 +162,7 @@ Flush grids **must regain separation when tiles stack to a single column** — z
 }
 ```
 
-(Exact breakpoint is per-pattern; the principle is: **flush is a multi-column affordance and dissolves to separated at one column.**)
+(Exact breakpoint is per-pattern; the principle is: **flush is a multi-column affordance and dissolves to a non-zero gutter — `dense`/8px — at one column.**)
 
 ## 6. Interaction rules for flush mode
 
