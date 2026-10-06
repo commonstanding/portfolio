@@ -99,12 +99,10 @@
      Single-direction margins + flex/grid gap handle the rest. */
   --global-section-gap: 6rem; /* 96px */
 
-  /* Sheet-on-backdrop layout — the page renders as a rounded sheet
-     floating over a full-bleed backdrop (reference styling). The sheet
-     is wider than the container so the container's own padding becomes
-     the sheet's internal gutter. */
-  --global-sheet-max: 84rem; /* 1344px */
-  --global-sheet-gap: clamp(0.75rem, 2.5vw, 2rem); /* backdrop reveal around the sheet */
+  /* Sheet-on-backdrop layout retired 06/10/2026 (docs/spec-full-bleed-page.md):
+     the page canvas is the paper itself — body paints --color-bg-page full-bleed
+     and --global-container is the only centring mechanism. --global-sheet-max/-gap
+     deleted; no consumers remain. */
 
   /* Gutter density scale — the only legal gutter values.
      The gutter is a property of the CONTENT PATTERN, not the page:
@@ -131,7 +129,8 @@
   --color-bg-brand-hover: var(--global-color-orange-400);
   --color-bg-inverse: var(--global-color-ink-900);
   --color-bg-muted: var(--global-color-cream-200);
-  --color-bg-backdrop: var(--global-color-ink-900); /* behind the sheet */
+  /* --color-bg-backdrop deleted 06/10/2026 — full-bleed page, no backdrop
+     (docs/spec-full-bleed-page.md §3). */
 
   /* Text */
   --color-text-body: var(--global-color-ink-800);
@@ -200,7 +199,8 @@
   --radius-control: var(--global-radius-pill);
   --radius-card: var(--global-radius-lg);
   --radius-media: var(--global-radius-lg); /* reference tiles read ~24px */
-  --radius-sheet: var(--global-radius-xl); /* the page sheet itself */
+  /* --radius-sheet deleted 06/10/2026 — nothing rounds the page edge any more
+     (docs/spec-full-bleed-page.md §3). */
 }
 
 /* Fluid typography: scale up the root between breakpoints so every

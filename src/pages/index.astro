@@ -124,7 +124,6 @@ const steps = [
   <body>
     <!-- TEMPORARY: design QA overlay — press "g" to toggle. Remove before production. -->
     <GridOverlay />
-    <div class="sheet">
     <!-- ============ HEADER ============ -->
     <header class="site-header">
       <div class="container site-header__inner">
@@ -268,7 +267,6 @@ const steps = [
         </nav>
       </div>
     </footer>
-    </div>
   </body>
 </html>
 
@@ -284,20 +282,10 @@ const steps = [
     font-size: var(--type-body);
     line-height: var(--global-leading-normal);
     color: var(--color-text-body);
-    background-color: var(--color-bg-backdrop);
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* Sheet-on-backdrop: the page is a rounded cream sheet floating over
-     the backdrop. The sheet is wider than the container, so the
-     container's own padding becomes the sheet's internal gutter. */
-  .sheet {
-    max-width: var(--global-sheet-max);
-    margin-inline: auto;
-    margin-block: var(--global-sheet-gap);
+    /* Full-bleed page: the canvas IS the paper (docs/spec-full-bleed-page.md).
+       Cream edge to edge; .container is the only centring mechanism. */
     background-color: var(--color-bg-page);
-    border-radius: var(--radius-sheet);
-    overflow: clip;
+    -webkit-font-smoothing: antialiased;
   }
 
   img {
