@@ -71,6 +71,12 @@ function radiusVars(cell: BentoCell) {
     .map((n) => `--r${n}: ${r0.includes(n) ? 0 : 'var(--bento-radius-cell)'};`)
     .join(' ');
 }
+
+// Canonical cell identity (spec §4): the canvas notation, never DOM order.
+// Stamped on the cell so the QA overlay can label it without page markup.
+function notation(cell: BentoCell) {
+  return `c${cell.c[0]}-${cell.c[1]} r${cell.r[0]}-${cell.r[1]}`;
+}
 ---
 
 <section
@@ -90,6 +96,7 @@ function radiusVars(cell: BentoCell) {
             { 'bento__cell--circle': cell.circle },
             cell.class,
           ]}
+          data-cell={notation(cell)}
           style={`grid-column: ${cell.c[0]} / ${cell.c[1] + 1}; grid-row: ${cell.r[0]} / ${cell.r[1] + 1}; ${finish === 'mask' ? maskVars(cell) : ''} ${radiusVars(cell)}`}
         >
           {finish === 'mask' && image && (

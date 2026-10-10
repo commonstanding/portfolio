@@ -1,10 +1,14 @@
 ---
 // TEMPORARY: Grid system overlay for design QA.
 // Toggles (keyboard):
-//   g — master on/off (all layers)
-//   h — horizontal row grid (tracks + gutters)
-//   m — container margin guides
-//   p — padding outlines on elements
+//   g   — master on/off (all layers)
+//   c   — vertical column grid
+//   u   — gutter bars
+//   m   — container margin guides
+//   p   — padding outlines on elements
+//   o   — hover box-model inspector
+//   n   — column numbers
+//   i   — bento cell id labels (canvas notation, spec §4)
 // Also controllable via the floating widget (bottom-right).
 // Remove before production.
 interface Props {
@@ -44,13 +48,14 @@ const { columns = 12 } = Astro.props;
       –
     </button>
   </div>
-  <div class="grid-widget__layers" id="grid-widget-layers" hidden>
+  <div class="grid-widget__layers" id="grid-widget-layers">
     <label class="grid-widget__item"><input type="checkbox" data-layer="columns" /> Columns <kbd>C</kbd></label>
     <label class="grid-widget__item"><input type="checkbox" data-layer="gutters" /> Gutters <kbd>U</kbd></label>
     <label class="grid-widget__item"><input type="checkbox" data-layer="margins" /> Margins <kbd>M</kbd></label>
     <label class="grid-widget__item"><input type="checkbox" data-layer="padding" /> Padding <kbd>P</kbd></label>
     <label class="grid-widget__item"><input type="checkbox" data-layer="hover" /> Hover inspect <kbd>O</kbd></label>
     <label class="grid-widget__item"><input type="checkbox" data-layer="numbers" /> Column numbers <kbd>N</kbd></label>
+    <label class="grid-widget__item"><input type="checkbox" data-layer="cells" /> Cell IDs <kbd>I</kbd></label>
   </div>
   <div class="grid-widget__density" role="group" aria-label="Preview gutter density">
     <span class="grid-widget__density-label">Density preview</span>
@@ -69,6 +74,11 @@ const { columns = 12 } = Astro.props;
   <div class="grid-inspector__content" id="grid-inspector-content"></div>
   <div class="grid-inspector__label" id="grid-inspector-label"></div>
 </div>
+
+<!-- TEMPORARY: bento cell id labels — the canvas notation (spec §4) for every
+     placed cell. Positioned from the real cell rects by JS, so the labels
+     track the canvas at any viewport. Keyboard: i -->
+<div class="grid-cells" id="grid-cells" aria-hidden="true"></div>
 
 <style>
   .grid-overlay {
@@ -334,12 +344,28 @@ const { columns = 12 } = Astro.props;
     border-color: var(--color-border-strong);
   }
 
-  /* Minimised state: collapse everything below the header.
-     !important needed because the density block's sibling selector
-     (.grid-widget__layers:not([hidden]) ~ ...) outranks a plain class. */
+  /* ---- Panel open state -------------------------------------------------
+     The panel and the density block are shown by ONE class on the widget
+     (.is-open), not by the `hidden` attribute. A bare `[hidden]` is defeated
+     by the author-sheet `display: flex` below (same specificity, author wins),
+     which left the panel painted open while aria-expanded read "false". */
+  .grid-widget__layers,
+  .grid-widget__density {
+    display: none;
+  }
+
+  .grid-widget.is-open .grid-widget__layers {
+    display: flex;
+  }
+
+  .grid-widget.is-open .grid-widget__density {
+    display: flex;
+  }
+
+  /* Minimised collapses the panel regardless of open state. */
   .grid-widget.is-minimised .grid-widget__layers,
   .grid-widget.is-minimised .grid-widget__density {
-    display: none !important;
+    display: none;
   }
 
   .grid-widget__toggle:hover {
@@ -347,7 +373,6 @@ const { columns = 12 } = Astro.props;
   }
 
   .grid-widget__layers {
-    display: flex;
     flex-direction: column;
     border-block-start: var(--global-border-width-hairline) solid var(--color-border-subtle);
   }
@@ -384,15 +409,10 @@ const { columns = 12 } = Astro.props;
      Temporarily re-scopes --grid-gutter page-wide so you can preview how
      every grid responds to each density. Does NOT change component code. */
   .grid-widget__density {
-    display: none;
     flex-direction: column;
     gap: var(--spacing-gap-sm);
     padding: var(--spacing-padding-sm);
     border-block-start: var(--global-border-width-hairline) solid var(--color-border-subtle);
-  }
-
-  .grid-widget__layers:not([hidden]) ~ .grid-widget__density {
-    display: flex;
   }
 
   .grid-widget__density-label {
@@ -420,6 +440,42 @@ const { columns = 12 } = Astro.props;
     accent-color: var(--color-bg-brand);
     margin: 0;
   }
+
+  /* ---- Padding outlines (toggled by the Padding layer) ----
+     Lives here, not in a component sheet: the class is applied by JS to
+     arbitrary page elements, so Astro's scoping would never match it. */
+  :global(body.show-padding-outlines .grid-overlay-padding-outline) {
+    outline: 1px dashed color-mix(in srgb, var(--color-bg-brand) 70%, transparent);
+    outline-offset: -1px;
+  }
+
+  /* ---- Cell id labels (bento notation, spec §4) ----
+     Labels are created at runtime, so these rules must be :global(). */
+  .grid-cells {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    display: none;
+  }
+
+  body:has(.grid-overlay.is-visible.show-cells) .grid-cells {
+    display: block;
+  }
+
+  :global(.grid-cells__label) {
+    position: absolute;
+    padding: 0.15em 0.5em;
+    font-family: var(--global-font-sans);
+    font-size: var(--global-type-step--2);
+    font-weight: var(--global-weight-semibold);
+    line-height: var(--global-leading-tight);
+    color: var(--color-text-on-inverse);
+    background-color: color-mix(in srgb, var(--color-bg-inverse) 88%, transparent);
+    border-radius: var(--global-radius-xs);
+    white-space: nowrap;
+    transform: translate(4px, 4px);
+  }
 </style>
 
 <script>
@@ -432,7 +488,26 @@ const { columns = 12 } = Astro.props;
     padding: 'grid-overlay-padding',
     hover: 'grid-overlay-hover',
     numbers: 'grid-overlay-numbers',
+    cells: 'grid-overlay-cells',
   } as const;
+
+  // Keyboard shortcut → layer name. Data-layer values are layer names, so
+  // these are two distinct namespaces and both are validated by own-property
+  // lookup (`in` would walk the prototype chain and accept "constructor").
+  const SHORTCUTS: Record<string, keyof typeof KEYS> = {
+    g: 'master',
+    c: 'columns',
+    u: 'gutters',
+    m: 'margins',
+    p: 'padding',
+    o: 'hover',
+    n: 'numbers',
+    i: 'cells',
+  };
+
+  function isLayerKey(key: string | undefined): key is keyof typeof KEYS {
+    return !!key && Object.prototype.hasOwnProperty.call(KEYS, key);
+  }
 
   const overlay = document.getElementById('grid-overlay');
   const body = document.body;
@@ -453,6 +528,10 @@ const { columns = 12 } = Astro.props;
       if (!visible) hideInspector();
     } else if (key === 'numbers') {
       overlay.classList.toggle('show-numbers', visible);
+    } else if (key === 'cells') {
+      overlay.classList.toggle('show-cells', visible);
+      if (visible) renderCellLabels();
+      else clearCellLabels();
     } else if (key === 'padding') {
       body.classList.toggle('show-padding-outlines', visible);
       if (visible) injectPaddingOutlines();
@@ -469,9 +548,10 @@ const { columns = 12 } = Astro.props;
   // shows an empty overlay that looks like nothing happened.
   function toggleMaster() {
     const turningOn = !getLayer('master');
-    if (turningOn && !getLayer('columns') && !getLayer('gutters') && !getLayer('margins') && !getLayer('padding') && !getLayer('hover') && !getLayer('numbers')) {
+    if (turningOn && !getLayer('columns') && !getLayer('gutters') && !getLayer('margins') && !getLayer('padding') && !getLayer('hover') && !getLayer('numbers') && !getLayer('cells')) {
       setLayer('columns', true);
       setLayer('gutters', true);
+      setLayer('cells', true);
     }
     setLayer('master', turningOn);
   }
@@ -509,14 +589,18 @@ const { columns = 12 } = Astro.props;
 
   document.addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
-    const k = e.key.toLowerCase();
-    if (k === 'g') toggleMaster();
-    if (k === 'c') setLayer('columns', !getLayer('columns'));
-    if (k === 'u') setLayer('gutters', !getLayer('gutters'));
-    if (k === 'm') setLayer('margins', !getLayer('margins'));
-    if (k === 'p') setLayer('padding', !getLayer('padding'));
-    if (k === 'o') setLayer('hover', !getLayer('hover'));
-    if (k === 'n') setLayer('numbers', !getLayer('numbers'));
+    // Never fire while typing in a field, and ignore keys that only ever
+    // arrive as a click target (a click on a <button>/<a> also dispatches
+    // keydown with key "Enter"/" "). Without the target check, pressing "p"
+    // in the search box toggled the padding layer.
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+    if ((e.target as HTMLElement | null)?.isContentEditable) return;
+    const layer = SHORTCUTS[e.key.toLowerCase()];
+    if (!layer || !isLayerKey(layer) || !overlay) return;
+    e.preventDefault();
+    if (layer === 'master') toggleMaster();
+    else setLayer(layer, !getLayer(layer));
+    setTimeout(syncWidget, 0);
   });
 
   // Restore state on load
@@ -527,33 +611,42 @@ const { columns = 12 } = Astro.props;
   overlay?.classList.toggle('show-margins', getLayer('margins'));
   overlay?.classList.toggle('show-hover', getLayer('hover'));
   overlay?.classList.toggle('show-numbers', getLayer('numbers'));
+  overlay?.classList.toggle('show-cells', getLayer('cells'));
 
   // ---- Widget wiring ----
   const widget = document.getElementById('grid-widget');
   const widgetToggle = document.getElementById('grid-widget-toggle');
   const widgetLayers = document.getElementById('grid-widget-layers');
 
+  function setWidgetOpen(open: boolean) {
+    widget?.classList.toggle('is-open', open);
+    widgetToggle?.setAttribute('aria-expanded', String(open));
+    sessionStorage.setItem('grid-widget-open', String(open));
+  }
+
   // Columns layer: shown with the master overlay (it IS the base layer).
   // Master "g" now maps to the widget's open state + columns visibility.
   function syncWidget() {
     if (!widgetLayers) return;
     widgetLayers.querySelectorAll<HTMLInputElement>('input[data-layer]').forEach((input) => {
-      const layer = input.dataset.layer as keyof typeof KEYS | undefined;
-      if (!layer) return;
+      const layer = input.dataset.layer;
+      if (!isLayerKey(layer)) return;
       input.checked = getLayer(layer);
     });
   }
 
   widgetToggle?.addEventListener('click', () => {
-    const panelWasClosed = widgetLayers?.hasAttribute('hidden');
-    widgetLayers?.toggleAttribute('hidden', !panelWasClosed);
-    widgetToggle?.setAttribute('aria-expanded', String(!!panelWasClosed));
+    const opening = !widget?.classList.contains('is-open');
     // Opening the panel un-minimises the widget
-    if (panelWasClosed) widget?.classList.remove('is-minimised');
+    if (opening) widget?.classList.remove('is-minimised');
+    setWidgetOpen(opening);
     // The Grid button is also the master switch: if the overlay is off,
     // opening the panel turns it on (with base layers) so the button
     // always does something visible.
-    if (panelWasClosed && !getLayer('master')) toggleMaster();
+    if (opening && !getLayer('master')) {
+      toggleMaster();
+      syncWidget(); // reflect the auto-enabled base layers in the checkboxes
+    }
   });
 
   // Minimise: collapse the panel to just the header; state persists per session
@@ -579,21 +672,19 @@ const { columns = 12 } = Astro.props;
     setMinimised(true);
   }
 
+  // Restore panel open state (persisted per session like every other toggle)
+  const OPEN_KEY = 'grid-widget-open';
+  if (sessionStorage.getItem(OPEN_KEY) === 'true') setWidgetOpen(true);
+
   widgetLayers?.addEventListener('change', (e) => {
     const input = (e.target as HTMLInputElement).closest('input[data-layer]') as HTMLInputElement | null;
-    if (!input?.dataset.layer) return;
-    setLayer(input.dataset.layer as keyof typeof KEYS, input.checked);
-  });
-
-  // Keep checkboxes in sync when toggling via keyboard
-  document.addEventListener('keydown', (e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    const k = e.key.toLowerCase();
-    if (['g', 'm', 'p', 'c', 'u', 'o', 'n'].includes(k)) setTimeout(syncWidget, 0);
+    const layer = input?.dataset.layer;
+    if (!isLayerKey(layer)) return;
+    setLayer(layer, input!.checked);
   });
 
   // Initial sync on load
-  setTimeout(syncWidget, 0);
+  syncWidget();
 
   // ---- Gutter bars: positioned from the REAL column rects so they always
   // line up exactly with the rendered gaps. When a density preview is
@@ -643,6 +734,54 @@ const { columns = 12 } = Astro.props;
     }
   }
 
+  // ---- Cell id labels: draw the canvas notation (spec §4) on every placed
+  // bento cell. Bento.astro stamps data-cell on each .bento__cell, so this
+  // costs no extra markup in the page. The layer is fixed, so positions are
+  // viewport coords and must be refreshed on scroll as well as resize. ----
+  const cellsLayer = document.getElementById('grid-cells');
+
+  function clearCellLabels() {
+    if (cellsLayer) cellsLayer.textContent = '';
+  }
+
+  function renderCellLabels() {
+    if (!cellsLayer) return;
+    cellsLayer.textContent = '';
+    if (!getLayer('cells')) return;
+    // Cell id labels come from the cell elements only. Card content lives in a
+    // sibling .bento__card-slot covering the same area, so stamping that too
+    // would stack a duplicate label on every card cell.
+    document.querySelectorAll<HTMLElement>('.bento__cell[data-cell]').forEach((cell) => {
+      const id = cell.dataset.cell;
+      if (!id) return;
+      const label = document.createElement('span');
+      label.className = 'grid-cells__label';
+      label.textContent = id;
+      cellsLayer.appendChild(label);
+    });
+    positionCellLabels();
+  }
+
+  // Cheap refresh: reuse the existing labels, just re-measure. Called on
+  // scroll, so it stays off the DOM-creation path.
+  function positionCellLabels() {
+    if (!cellsLayer) return;
+    const cells = document.querySelectorAll<HTMLElement>('.bento__cell[data-cell]');
+    const labels = cellsLayer.children;
+    for (let i = 0; i < cells.length && i < labels.length; i++) {
+      const r = cells[i].getBoundingClientRect();
+      const label = labels[i] as HTMLElement;
+      label.style.left = `${r.left}px`;
+      label.style.top = `${r.top}px`;
+    }
+  }
+
+  let labelRaf = 0;
+  window.addEventListener('scroll', () => {
+    cancelAnimationFrame(labelRaf);
+    labelRaf = requestAnimationFrame(positionCellLabels);
+  }, { passive: true });
+
   // Recompute on resize (1fr tracks change) and once on load
   let gutterRaf = 0;
   function scheduleGutterLayout() {
@@ -650,7 +789,10 @@ const { columns = 12 } = Astro.props;
     gutterRaf = requestAnimationFrame(() => {
       layoutColumns(); // apply/clear the simulated gap FIRST
       // then measure bars on the following frame, after the reflow settles
-      requestAnimationFrame(layoutGutters);
+      requestAnimationFrame(() => {
+        layoutGutters();
+        renderCellLabels();
+      });
     });
   }
   window.addEventListener('resize', scheduleGutterLayout);
@@ -659,6 +801,7 @@ const { columns = 12 } = Astro.props;
   }
   layoutGutters();
   layoutColumns();
+  renderCellLabels();
 
   // ---- Column bars: reposition the column tracks to reflect the
   // previewed density. With flush, tracks expand to absorb the gutters;
@@ -711,6 +854,7 @@ const { columns = 12 } = Astro.props;
     if (overlay?.classList.contains('is-visible')) {
       layoutGutters();
       layoutMargins();
+      renderCellLabels();
     }
   };
   scheduleGutterLayout();
