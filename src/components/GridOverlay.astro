@@ -4,6 +4,7 @@
 //   g   — master on/off (all layers)
 //   c   — vertical column grid
 //   u   — gutter bars
+//   r   — bento row bands (canvas row tracks, spec §4)
 //   m   — container margin guides
 //   p   — padding outlines on elements
 //   o   — hover box-model inspector
@@ -38,6 +39,12 @@ const { columns = 12 } = Astro.props;
   <div class="grid-overlay__gutters" id="grid-overlay-gutters"></div>
 </div>
 
+<!-- TEMPORARY: bento row bands — one band per row track on every canvas
+     (spec §4). Row tracks only exist inside a canvas, so unlike the column
+     layer these are canvas-scoped. Positioned from the real row rects by JS.
+     Keyboard: r -->
+<div class="grid-rows" id="grid-rows" aria-hidden="true"></div>
+
 <!-- TEMPORARY: floating control widget for overlay layers -->
 <div class="grid-widget" id="grid-widget" role="group" aria-label="Grid overlay controls">
   <div class="grid-widget__header">
@@ -51,6 +58,7 @@ const { columns = 12 } = Astro.props;
   <div class="grid-widget__layers" id="grid-widget-layers">
     <label class="grid-widget__item"><input type="checkbox" data-layer="columns" /> Columns <kbd>C</kbd></label>
     <label class="grid-widget__item"><input type="checkbox" data-layer="gutters" /> Gutters <kbd>U</kbd></label>
+    <label class="grid-widget__item"><input type="checkbox" data-layer="rows" /> Rows <kbd>R</kbd></label>
     <label class="grid-widget__item"><input type="checkbox" data-layer="margins" /> Margins <kbd>M</kbd></label>
     <label class="grid-widget__item"><input type="checkbox" data-layer="padding" /> Padding <kbd>P</kbd></label>
     <label class="grid-widget__item"><input type="checkbox" data-layer="hover" /> Hover inspect <kbd>O</kbd></label>
@@ -229,6 +237,54 @@ const { columns = 12 } = Astro.props;
   /* Zero-width gaps (mosaic) get no label — nothing to measure */
   :global(.grid-overlay__gutter[data-zero]::after) {
     content: none;
+  }
+
+  /* ---- Bento row bands (spec §4) ----
+     Row tracks exist only inside a canvas, so these are drawn per canvas
+     rather than page-wide. The layer is anchored to the DOCUMENT origin and
+     its children carry document coordinates, so the browser scrolls them
+     natively — a fixed layer would need a scroll listener and would freeze
+     whenever rAF is throttled (background tab). Bands are created by JS, so
+     their rules must be :global(). */
+  .grid-rows {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    overflow: visible;
+    z-index: 9999;
+    pointer-events: none;
+    display: none;
+  }
+
+  body:has(.grid-overlay.is-visible.show-rows) .grid-rows {
+    display: block;
+  }
+
+  :global(.grid-rows__band) {
+    position: absolute;
+    /* No global box-sizing rule, so an inline box with block borders would
+       render 2px taller than the track it represents. */
+    box-sizing: border-box;
+    background-color: color-mix(in srgb, #4c6ef5 8%, transparent);
+    border-block: var(--global-border-width-hairline) solid
+      color-mix(in srgb, #4c6ef5 30%, transparent);
+  }
+
+  :global(.grid-rows__num) {
+    position: absolute;
+    /* Vertically centred in the band: anchored top-left, the number would sit
+       exactly under a cell id label, which shares the same corner. */
+    transform: translateY(-50%);
+    padding: 0.05em 0.4em;
+    font-family: var(--global-font-sans);
+    font-size: var(--global-type-step--2);
+    font-weight: var(--global-weight-semibold);
+    color: var(--color-text-heading);
+    background-color: var(--color-bg-surface);
+    border: var(--global-border-width-hairline) solid var(--color-border-strong);
+    border-radius: var(--global-radius-xs);
   }
 
   /* ---- Hover inspector: DevTools-style box model for the hovered element ---- */
@@ -450,10 +506,15 @@ const { columns = 12 } = Astro.props;
   }
 
   /* ---- Cell id labels (bento notation, spec §4) ----
-     Labels are created at runtime, so these rules must be :global(). */
+     Document-anchored like the row bands: children carry document
+     coordinates, so scrolling is handled natively by the browser. */
   .grid-cells {
-    position: fixed;
-    inset: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    overflow: visible;
     z-index: 9999;
     pointer-events: none;
     display: none;
@@ -484,6 +545,7 @@ const { columns = 12 } = Astro.props;
     master: 'grid-overlay-visible',
     columns: 'grid-overlay-columns',
     gutters: 'grid-overlay-gutters',
+    rows: 'grid-overlay-rows',
     margins: 'grid-overlay-margins',
     padding: 'grid-overlay-padding',
     hover: 'grid-overlay-hover',
@@ -498,6 +560,7 @@ const { columns = 12 } = Astro.props;
     g: 'master',
     c: 'columns',
     u: 'gutters',
+    r: 'rows',
     m: 'margins',
     p: 'padding',
     o: 'hover',
@@ -521,6 +584,10 @@ const { columns = 12 } = Astro.props;
       overlay.classList.toggle('show-columns', visible);
     } else if (key === 'gutters') {
       overlay.classList.toggle('show-gutters', visible);
+    } else if (key === 'rows') {
+      overlay.classList.toggle('show-rows', visible);
+      if (visible) renderRowBands();
+      else clearRowBands();
     } else if (key === 'margins') {
       overlay.classList.toggle('show-margins', visible);
     } else if (key === 'hover') {
@@ -548,7 +615,7 @@ const { columns = 12 } = Astro.props;
   // shows an empty overlay that looks like nothing happened.
   function toggleMaster() {
     const turningOn = !getLayer('master');
-    if (turningOn && !getLayer('columns') && !getLayer('gutters') && !getLayer('margins') && !getLayer('padding') && !getLayer('hover') && !getLayer('numbers') && !getLayer('cells')) {
+    if (turningOn && !getLayer('columns') && !getLayer('gutters') && !getLayer('rows') && !getLayer('margins') && !getLayer('padding') && !getLayer('hover') && !getLayer('numbers') && !getLayer('cells')) {
       setLayer('columns', true);
       setLayer('gutters', true);
       setLayer('cells', true);
@@ -608,6 +675,7 @@ const { columns = 12 } = Astro.props;
   overlay?.classList.toggle('is-visible', master);
   overlay?.classList.toggle('show-columns', getLayer('columns'));
   overlay?.classList.toggle('show-gutters', getLayer('gutters'));
+  overlay?.classList.toggle('show-rows', getLayer('rows'));
   overlay?.classList.toggle('show-margins', getLayer('margins'));
   overlay?.classList.toggle('show-hover', getLayer('hover'));
   overlay?.classList.toggle('show-numbers', getLayer('numbers'));
@@ -734,10 +802,81 @@ const { columns = 12 } = Astro.props;
     }
   }
 
+  // ---- Bento row bands: one band per row track on every canvas (spec §4).
+  // Rows are canvas-scoped, so each band is measured from the canvas's own
+  // resolved grid tracks and placed in DOCUMENT coordinates, letting the
+  // browser scroll it natively (no scroll listener, no rAF dependency). ----
+  const rowsLayer = document.getElementById('grid-rows');
+
+  // getComputedStyle().gridTemplateRows resolves repeat() and 1fr to px, so
+  // this yields the real track sizes. Deriving from height instead would
+  // misreport content-governed canvases, whose rows stretch past the unit
+  // (the benefits canvas — spec §12 accepted divergence).
+  function canvasTracks(canvas: HTMLElement): number[] {
+    return getComputedStyle(canvas)
+      .gridTemplateRows.trim()
+      .split(/\s+/)
+      .map(parseFloat)
+      .filter((n) => !Number.isNaN(n));
+  }
+
+  function clearRowBands() {
+    if (rowsLayer) rowsLayer.textContent = '';
+  }
+
+  function renderRowBands() {
+    if (!rowsLayer) return;
+    rowsLayer.textContent = '';
+    if (!getLayer('rows')) return;
+    document.querySelectorAll<HTMLElement>('.bento').forEach((canvas) => {
+      canvasTracks(canvas).forEach(() => {
+        const band = document.createElement('span');
+        band.className = 'grid-rows__band';
+        rowsLayer.appendChild(band);
+        const num = document.createElement('span');
+        num.className = 'grid-rows__num';
+        rowsLayer.appendChild(num);
+      });
+    });
+    positionRowBands();
+  }
+
+  // Re-measure and reposition; resize-only, scrolling is native.
+  function positionRowBands() {
+    if (!rowsLayer) return;
+    const sy = window.scrollY || window.pageYOffset;
+    const bands = [...rowsLayer.querySelectorAll<HTMLElement>('.grid-rows__band')];
+    const nums = [...rowsLayer.querySelectorAll<HTMLElement>('.grid-rows__num')];
+    let i = 0;
+    document.querySelectorAll<HTMLElement>('.bento').forEach((canvas) => {
+      const tracks = canvasTracks(canvas);
+      const gap = parseFloat(getComputedStyle(canvas).rowGap) || 0;
+      const rect = canvas.getBoundingClientRect();
+      let top = rect.top + sy;
+      tracks.forEach((track, r) => {
+        const band = bands[i];
+        const num = nums[i];
+        if (band) {
+          band.style.left = `${rect.left}px`;
+          band.style.top = `${top}px`;
+          band.style.width = `${rect.width}px`;
+          band.style.height = `${track}px`;
+        }
+        if (num) {
+          num.textContent = String(r + 1);
+          num.style.left = `${rect.left + 4}px`;
+          num.style.top = `${top + track / 2}px`;
+        }
+        top += track + gap;
+        i++;
+      });
+    });
+  }
+
   // ---- Cell id labels: draw the canvas notation (spec §4) on every placed
   // bento cell. Bento.astro stamps data-cell on each .bento__cell, so this
-  // costs no extra markup in the page. The layer is fixed, so positions are
-  // viewport coords and must be refreshed on scroll as well as resize. ----
+  // costs no extra markup in the page. Children carry document coordinates
+  // (rect + scrollY) because the layer is document-anchored. ----
   const cellsLayer = document.getElementById('grid-cells');
 
   function clearCellLabels() {
@@ -762,25 +901,20 @@ const { columns = 12 } = Astro.props;
     positionCellLabels();
   }
 
-  // Cheap refresh: reuse the existing labels, just re-measure. Called on
-  // scroll, so it stays off the DOM-creation path.
+  // Re-measure and reposition. Only needs to run on resize now: because the
+  // layers are document-anchored, scrolling is handled natively.
   function positionCellLabels() {
     if (!cellsLayer) return;
+    const sy = window.scrollY || window.pageYOffset;
     const cells = document.querySelectorAll<HTMLElement>('.bento__cell[data-cell]');
     const labels = cellsLayer.children;
     for (let i = 0; i < cells.length && i < labels.length; i++) {
       const r = cells[i].getBoundingClientRect();
       const label = labels[i] as HTMLElement;
       label.style.left = `${r.left}px`;
-      label.style.top = `${r.top}px`;
+      label.style.top = `${r.top + sy}px`;
     }
   }
-
-  let labelRaf = 0;
-  window.addEventListener('scroll', () => {
-    cancelAnimationFrame(labelRaf);
-    labelRaf = requestAnimationFrame(positionCellLabels);
-  }, { passive: true });
 
   // Recompute on resize (1fr tracks change) and once on load
   let gutterRaf = 0;
@@ -792,6 +926,7 @@ const { columns = 12 } = Astro.props;
       requestAnimationFrame(() => {
         layoutGutters();
         renderCellLabels();
+        renderRowBands();
       });
     });
   }
@@ -802,6 +937,7 @@ const { columns = 12 } = Astro.props;
   layoutGutters();
   layoutColumns();
   renderCellLabels();
+  renderRowBands();
 
   // ---- Column bars: reposition the column tracks to reflect the
   // previewed density. With flush, tracks expand to absorb the gutters;
@@ -855,6 +991,7 @@ const { columns = 12 } = Astro.props;
       layoutGutters();
       layoutMargins();
       renderCellLabels();
+      renderRowBands();
     }
   };
   scheduleGutterLayout();
