@@ -34,14 +34,16 @@ const benefitsCells: BentoCell[] = [
 ];
 
 // Hero media strip — Bento canvas (docs/spec-bento.md §9.1):
-// 12 cols × 6 rows, unit ratio 0.772, flush, mask finish. ONE shared image
+// 12 cols × 6 rows, square unit, flush, mask finish. ONE shared image
 // exposed through 7 clip-mask windows; cell A carries the alt.
 // Substrate is 12×6 (not 6×3) because cell D spans 2 cols × 3 rows of the
 // visible rhythm — a fractional row forces the finer substrate (spec §2.1).
 // Two compositional devices: a pinched diagonal shell (square at canvas TL
 // and BR) and a hidden seam (D/E1/E2 all-square at their shared edge, so the
 // middle column reads as one image that forks only near the baseline).
-// Geometry reproduced from reference01 — docs/analysis-reference01-hero.md.
+// Cell geometry reproduced from reference01 (docs/analysis-reference01-hero.md);
+// the reference's 0.772 sub-square unit was dropped on 10/10/2026 so the row
+// height equals the column width like every other canvas (2:1 canvas, not 2.59:1).
 // Total cell area: 8+8+8+16+4+4+24 = 72 = 12 × 6 ✓
 const MEDIA_STRIP_SRC =
   'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1600&q=80&auto=format&fit=crop';
@@ -164,11 +166,10 @@ const steps = [
       </section>
 
       <!-- ============ HERO MEDIA STRIP ============ -->
-      <!-- Bento canvas: 12×6, unit ratio 0.772, flush, mask finish (spec §9.1).
+      <!-- Bento canvas: 12×6, square unit, flush, mask finish (spec §9.1).
            One shared image, 7 clip-mask windows; cell A carries the alt. -->
       <Bento
         rows={6}
-        ratio={0.772}
         density="flush"
         image={MEDIA_STRIP_SRC}
         cells={mediaStripCells}

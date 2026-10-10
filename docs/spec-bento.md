@@ -51,7 +51,7 @@ Fractions are resolved by the substrate, never written as fractional coordinates
 All three sections converge on the row-unit strategy (ticket 01 Q2):
 
 1. **Global default:** square — row height = column width (`--bento-unit-ratio: 1` in `tokens.css`).
-2. **Per-canvas override** *modifies* the default, never replaces the mechanism: a **fraction** (row = k × column width) or a **clamp** (min/max bounds on the square unit). Declared as an inline custom property on the canvas element. *First live use:* the media strip's `0.772` ratio (`spec-bento.md` §9.1), adopted from reference01 on 07/10/2026 — it is what buys the 2.59 : 1 letterbox band from a 6 × 3 visible rhythm. Before that every canvas used the square default.
+2. **Per-canvas override** *modifies* the default, never replaces the mechanism: a **fraction** (row = k × column width) or a **clamp** (min/max bounds on the square unit). Declared as an inline custom property on the canvas element. **No canvas currently overrides it** (10/10/2026): the media strip's `0.772` sub-square unit, adopted from reference01 on 07/10/2026, was reverted so every canvas declares the square default — see §9.1 and §13. The override remains available in the primitive; the mechanism is unchanged.
 3. **CSS expression:** the canvas declares its geometry as an aspect-ratio so the 1fr rows resolve against a definite block size:
 
    ```css
@@ -163,7 +163,7 @@ All windows stay in register because every cell renders the same canvas-sized im
 
 ## 9. Worked examples
 
-### 9.1 Media strip — 12 cols × 6 rows, unit ratio 0.772, flush, mask finish
+### 9.1 Media strip — 12 cols × 6 rows, square unit, flush, mask finish
 
 ```
 ┌───────────────┬───────────────┬───────────────┐
@@ -192,12 +192,16 @@ All windows stay in register because every cell renders the same canvas-sized im
 Total cell area: 8+8+8+16+4+4+24 = **72 = 12 × 6** ✓
 
 This is the reference01 hero geometry adopted on 07/10/2026 — reproduced in
-`docs/analysis-reference01-hero.md` (cream-mask IoU 0.716, 19/19 notches). Three
-things make it the spec's richest worked example:
+`docs/analysis-reference01-hero.md` (cream-mask IoU 0.716, 19/19 notches). Its
+**cell geometry** is the reference's; its **unit** is not (see point 1 below).
+Two things make it the spec's richest worked example:
 
-1. **First live per-canvas ratio override.** The unit is sub-square
-   (`--bento-unit-ratio: 0.772`), which buys the 2.59 : 1 letterbox band from a
-   6 × 3 visible rhythm (§3.2).
+1. **Sub-square unit reverted (10/10/2026).** The reference01 adoption used
+   `--bento-unit-ratio: 0.772` for a 2.59 : 1 letterbox band. That override was
+   dropped so the row height equals the column width, matching every other
+   canvas; the canvas is now square-unit **2 : 1** (948 × 474 at 1024px). The
+   cell geometry, the pinched shell and the hidden seam are unchanged — only
+   the unit is. The ratio override stays available in the primitive (§3.2).
 2. **First live fractional-row substrate.** Cell D spans 2 columns × 3 rows of
    the visible rhythm = 1.5 units tall, so the canvas is declared **12 × 6**
    (not 6 × 3) and every cell uses integer tracks. No fractional coordinates
@@ -307,18 +311,22 @@ Validation gates: total cell area = columns × rows; no overlapping cells; exact
 
 Verified 06/10/2026 (tickets `20261004-003`, `20261006-001`), computed-style measurement
 at 1280 / 1024 / 390px against the live page. Media-strip criteria re-verified 07/10/2026
-after the reference01 adoption (`20261007-001`); the ratio, tiling and alt figures below
-are from that re-measurement:
+after the reference01 adoption (`20261007-001`). Re-measured 10/10/2026 at 1440 / 1280 /
+1024 / 390px after the unit was squared and the card-content box model fixed; the ratio,
+tiling and card-fit figures below are from that last measurement.
 
 - [x] Every bento canvas declares 12 columns and a row count; no nested grids.
-- [x] Row height = column width × declared ratio, verified by measurement at two viewport
-      widths — holds for the image canvases (media strip: 99.4px col → 76.8px row at
-      1280px, ratio 0.772; 79.0px col → 61.0px row at 1024px; work gallery is square,
-      row = col). **Accepted divergence:** the
-      benefits canvas's rows stretch beyond the square unit (324px vs 198.8px declared at
-      1280px) because card content has an intrinsic minimum height; the aspect-ratio is a
-      floor, not a cap. Image canvases are unit-governed; content canvases are
-      content-governed.
+- [x] Row height = column width × declared ratio. No canvas overrides the unit any more
+      (2026-10-10), so all three declare the square default, measured: media strip
+      112.5→112.5 at 1440px, 99.4→99.4 at 1280px, 79.0→79.0 at 1024px; work gallery square
+      at all three. **Accepted divergence:** the benefits canvas is content-governed, not
+      unit-governed — its rows stretch to fit the card content and the canvas grows with
+      them: 162px row / 324px canvas (ratio 1.44) at 1440px, 162px / 324px (1.63) at 1280px,
+      184.5px / 369px (2.34) at 1024px. The declared square unit is a floor, never a cap.
+      Image canvases are unit-governed; content canvases are content-governed.
+- [x] Card content fits its cell, measured after the 2026-10-10 box-model fix: work-gallery
+      label 237/237 (was 309 → +72px overflow), benefits intro 369/369, benefit cards
+      184.5/184.5. No child overflows its slot at 1440 / 1280 / 1024px.
 - [x] Total cell area equals columns × rows for every canvas (no dead zones, no
       zero-height cells) — exhaustive tiling check: 72/72, 36/36, 24/24 covered, zero
       overlaps.
@@ -358,6 +366,8 @@ wins on divergence.
 | 07/10/2026 | §2.1, §4 | Media-strip row/notation examples repointed to 12×6 | Cross-references cited the old 6×3-era figures ("3 rows for the media strip", "full-height mask is `c10-12 r1-3`"); now 6 rows and `c9-12 r1-6`. |
 | 07/10/2026 | §12 | Measured evidence updated | Ratio check now cites 99.4→76.8px (0.772) at 1280px and 79.0→61.0px at 1024px; tiling check 48/48 → **72/72**. Re-measured live, not asserted. |
 | 07/10/2026 | skill | Media-strip worked example synced to 12×6 | Skill must track the spec (§13); carried the superseded 12×4 packing. |
+| 10/10/2026 | §3.2, §9.1, §12 | Media-strip unit **0.772 → square**; no canvas overrides the ratio | Row height = column width like every other canvas (Dale, 10/10/2026). Reverts the reference01 unit only — cell geometry, pinched shell and hidden seam unchanged; canvas is 2 : 1 not 2.59 : 1. Ratio override stays available in the primitive. |
+| 10/10/2026 | §7 | Card content pinned to its slot (`box-sizing: border-box`) | No global box-sizing rule, so `block-size: 100%` set the content box and the card's own padding was added on top — the work-gallery label rendered 309px inside a 237px canvas (+72px). Measured after: label 237/237, intro 158/158, cards 79/79. |
 
 **Open questions parked for Dale:** none outstanding. `20261006-002` (tablet cell maps)
 awaits design sign-off on the three per-section 6-track maps.

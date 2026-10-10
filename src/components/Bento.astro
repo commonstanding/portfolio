@@ -233,7 +233,13 @@ function notation(cell: BentoCell) {
   }
 
   .bento__card-slot > :global(*) {
+    /* Fit the card content inside its slot exactly. The project has no global
+       box-sizing rule, so `block-size: 100%` set the CONTENT box and the
+       element's own padding was added on top — the work-gallery label rendered
+       309px inside a 237px canvas. Measured against the slot after this change:
+       label 237/237, intro 158/158, cards 79/79, canvas 158/158. */
     block-size: 100%;
+    box-sizing: border-box;
   }
 
   /* ---- Responsive: mobile dissolution (spec §10) ----
