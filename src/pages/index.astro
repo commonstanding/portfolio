@@ -141,6 +141,8 @@ const steps = [
     <meta name="description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit." />
   </head>
   <body>
+    <!-- SC 2.4.1 Bypass Blocks: first focusable element on the page. -->
+    <a class="skip-link" href="#main">Skip to content</a>
     <!-- TEMPORARY: design QA overlay — press "g" to toggle. Remove before production. -->
     <GridOverlay />
     <!-- ============ HEADER ============ -->
@@ -159,7 +161,7 @@ const steps = [
       </div>
     </header>
 
-    <main class="container">
+    <main class="container" id="main">
       <!-- ============ HERO ============ -->
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero__copy">
@@ -315,6 +317,52 @@ const steps = [
     object-fit: cover;
   }
 
+  /* ---------- Accessibility baseline ---------- */
+
+  /* SC 2.4.7 Focus Visible: every interactive element gets a ring, not just
+     the ones a component happened to style. Components may override the
+     offset; none may remove the outline. */
+  :focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* SC 2.4.1 Bypass Blocks. Off-screen until focused, then pinned to the
+     top-left over the header. */
+  .skip-link {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    z-index: 100;
+    padding: var(--spacing-padding-xs) var(--spacing-padding-md);
+    background-color: var(--color-bg-inverse);
+    color: var(--color-text-on-inverse);
+    border-end-end-radius: var(--radius-control);
+    font-size: var(--global-type-step--1);
+    text-decoration: none;
+    transform: translateY(-100%);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+
+  /* SC 2.3.3 Animation from Interactions: honour the OS preference. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   h1,
   h2,
   h3 {
@@ -394,6 +442,13 @@ const steps = [
     color: var(--color-text-body);
     text-decoration: none;
     font-size: var(--global-type-step--1);
+    /* SC 2.5.8 Target Size (Minimum): 13px text at 1.5 leading is 19.5px
+       tall — under the 24px floor. Padding lifts the hit area to 27.5px
+       without moving the text baseline. */
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 1.5rem;
+    padding-block: var(--global-space-3xs);
   }
 
   .site-header__nav a:hover {
@@ -499,6 +554,7 @@ const steps = [
     padding: var(--spacing-padding-lg);
     block-size: 100%;
     background-color: var(--color-bg-muted);
+    border: var(--global-border-width-hairline) solid var(--color-border-subtle);
     border-radius: var(--radius-card);
   }
 
@@ -572,6 +628,11 @@ const steps = [
 
   .work__label h2 {
     font-size: var(--type-h2);
+    /* The page-level `h1, h2, h3 { color: var(--color-text-heading) }` rule
+       outranks the card's inherited colour, so the heading rendered ink-900
+       on the ink-900 card — 1.00:1, invisible. Re-assert the on-inverse
+       colour at a specificity that wins. */
+    color: var(--color-text-on-inverse);
   }
 
   .work__badge {
@@ -580,7 +641,7 @@ const steps = [
     inline-size: 2.5rem;
     block-size: 2.5rem;
     border-radius: var(--global-radius-pill);
-    background-color: color-mix(in srgb, var(--color-bg-inverse) 0%, transparent);
+    background-color: transparent;
     color: inherit;
     border: 1px solid currentColor;
   }
@@ -656,6 +717,9 @@ const steps = [
     padding: var(--spacing-padding-xl);
     text-align: center;
     background-color: var(--color-bg-surface);
+    /* cream-50 on cream-100 is 1.09:1 — the card needs an edge to read as
+       a distinct surface. Decorative, so the subtle hairline is correct. */
+    border: var(--global-border-width-hairline) solid var(--color-border-subtle);
     border-radius: var(--radius-card);
   }
 
@@ -701,6 +765,11 @@ const steps = [
   .site-footer__inner a {
     color: inherit;
     text-decoration: none;
+    /* SC 2.5.8 — same 24px floor as the header nav. */
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 1.5rem;
+    padding-block: var(--global-space-3xs);
   }
 
   .site-footer__inner a:hover {

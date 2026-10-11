@@ -51,21 +51,37 @@ const classes = ['input', className].filter(Boolean).join(' ');
     font-size: var(--type-body);
     color: var(--color-text-body);
     background-color: var(--color-bg-surface);
-    border: var(--global-border-width-hairline) solid var(--color-border-subtle);
+    /* SC 1.4.11: the field boundary is the only thing identifying the
+       control, so it needs 3:1 — the decorative hairline token does not. */
+    border: var(--global-border-width-hairline) solid var(--color-border-control);
     border-radius: var(--radius-control);
     transition:
       border-color var(--global-duration-fast) var(--global-ease-out),
       box-shadow var(--global-duration-fast) var(--global-ease-out);
   }
 
+  /* Placeholder text is still text (SC 1.4.3). The old rule stacked a 0.7
+     opacity on --color-text-muted, landing at 4.52:1 — passing by 0.02 and
+     only because the muted token happened to be dark. Use a dedicated
+     token at full opacity instead. */
   .input::placeholder {
-    color: var(--color-text-muted);
-    opacity: 0.7;
+    color: var(--color-text-placeholder);
+    opacity: 1;
   }
 
-  .input:focus {
-    outline: none;
+  /* :focus-visible, not :focus — a mouse click should not leave a ring.
+     The outline is kept (not replaced by the box-shadow) so the indicator
+     survives forced-colors mode, where box-shadow is dropped. */
+  .input:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
     border-color: var(--color-border-focus);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-border-focus) 25%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .input {
+      transition: none;
+    }
   }
 </style>
