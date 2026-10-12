@@ -53,9 +53,25 @@ const classes = ['btn', `btn--${variant}`, `btn--${size}`, className].filter(Boo
       border-color var(--global-duration-fast) var(--global-ease-out);
   }
 
+  /* SC 2.4.11/2.4.13: the ring must clear 3:1 against the page AND against
+     the button's own fill. --color-border-focus is orange-500, which is
+     4.73:1 on the cream page and 4.73:1 on the brand fill. */
   .btn:focus-visible {
     outline: 2px solid var(--color-border-focus);
     outline-offset: 2px;
+  }
+
+  /* SC 2.5.8 Target Size (Minimum): 24 × 24 CSS px. The sm size is the
+     tightest — its padding alone does not reach 24px at the small end. */
+  .btn {
+    min-block-size: 1.5rem;
+    min-inline-size: 1.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition: none;
+    }
   }
 
   /* Sizes — padding from semantic spacing tokens */
@@ -84,7 +100,7 @@ const classes = ['btn', `btn--${variant}`, `btn--${size}`, className].filter(Boo
     color: var(--color-text-on-inverse);
   }
   .btn--inverse:hover {
-    background-color: var(--color-text-muted);
+    background-color: var(--color-bg-inverse-hover);
   }
 
   .btn--ghost {

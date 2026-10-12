@@ -4,7 +4,12 @@
 **Diagram:** [`prototype/reference/reference01-hero-cells.png`](../prototype/reference/reference01-hero-cells.png)
 **Date:** 07/10/2026
 **Status:** Analysis complete. Geometry **adopted** as the built hero 07/10/2026
-(`20261007-001` option A) — see §8.
+(`20261007-001` option A) — see §8. **Superseded in part 10/10/2026:** the
+canvas, unit ratio, density and three-cell middle column are unchanged in the
+build, but the corner arrangement and the middle-column row split were revised
+by Dale's direction (`spec-bento.md` §13, 10/10/2026). §4, §7 and §8 below
+describe the **reference01 arrangement as measured**; the built arrangement
+differs. See §9 for the delta.
 
 This document reproduces the reference hero in bento vocabulary (§7). It is an
 *observation* of a reference design, not a spec: `spec-bento.md` remains
@@ -252,17 +257,27 @@ The reference geometry was **adopted as the built hero** on 07/10/2026
 (`_tasks/20261007-001`, option A). The table below is the *before* state — the
 12 × 4 hero that shipped until this decision — so the delta is preserved.
 
-| | Built before adoption | reference01 hero (now built) |
-|---|---|---|
-| Substrate | 12 × 4 | **12 × 6** |
-| Unit ratio | 1 (square) | **0.772** (sub-square) |
-| Cells | 7 | 7 |
-| Area | 48 | **72** |
-| Column rhythm | 1 + 4 + 4 + 3 | **4 + 4 + 4** (three equal thirds) |
-| Density | flush | flush |
-| Finish | mask, one image | mask, one image |
-| Canvas silhouette | rounded TR/BL only | **square TL and BR** — pinched diagonal |
-| Square-corner count | 12 of 28 | 9 of 28 |
+| | Built before adoption | reference01 hero (adopted 07/10) | Built now (10/10) |
+|---|---|---|---|
+| Substrate | 12 × 4 | **12 × 6** | 12 × 6 |
+| Unit ratio | 1 (square) | **0.772** (sub-square) | 0.772 |
+| Cells | 7 | 7 | 7 |
+| Area | 48 | **72** | 72 |
+| Column rhythm | 1 + 4 + 4 + 3 | **4 + 4 + 4** (three equal thirds) | 4 + 4 + 4 |
+| Density | flush | flush | flush |
+| Finish | mask, one image | mask, one image | mask, one image |
+| Canvas silhouette | rounded TR/BL only | **square TL and BR** — pinched diagonal | square TL and BR |
+| Middle-column fork | — | at r5 (canvas floor) | **at r4** (@ §9) |
+| Square-corner count | 12 of 28 | 9 of 28 | **5 of 28** |
+
+The final column is the arrangement Dale specified on 10/10/2026 — the corner
+detail changed while the canvas, unit and column rhythm held. §9 records the
+delta; `spec-bento.md` §9.1 is authoritative for the built state.
+
+**Retired in the build (10/10/2026):** item 2 below, the *hidden seam*. The
+device is still valid vocabulary but is no longer exercised here — the built
+arrangement squares only two of the four corners at the D-over-E boundary, so
+that boundary is now visible (§9).
 
 What the reference brought that the old hero did not have:
 
@@ -277,3 +292,55 @@ Nothing in `spec-bento.md` needed to change to *express* the layout — the
 vocabulary already covered it, which was the point. §9.1 was rewritten to
 document the new geometry, and the `bento-spec` skill worked example synced with
 it (amendment log §13, 07/10/2026).
+
+---
+
+## 9. Built arrangement supersedes §4/§7 (10/10/2026)
+
+Dale reviewed the built hero and specified the radius of all seven cells. The
+result keeps the canvas and the composition's bones, and changes two things:
+which corners are squared, and how high the middle column forks.
+
+| Cell | Reference (§3) | Built (now) | Change |
+|---|---|---|---|
+| A | `c1-4 r1-2` · r0 `[1]` | `c1-4 r1-2` · r0 `[1]` | unchanged |
+| B | `c1-4 r3-4` · r0 `[]` | `c1-4 r3-4` · r0 `[]` | unchanged |
+| C | `c1-4 r5-6` · r0 `[3]` | `c1-4 r5-6` · r0 `[3]` | unchanged |
+| D | `c5-8 r1-4` · r0 `[3,4]` | `c5-8 r1-3` · r0 `[]` | shorter; all corners rounded |
+| E1 | `c5-6 r5-6` · r0 `[1,2]` | `c5-6 r4-6` · r0 `[1]` | taller; only TL square |
+| E2 | `c7-8 r5-6` · r0 `[1,2]` | `c7-8 r4-6` · r0 `[2]` | taller; only TR square |
+| F | `c9-12 r1-6` · r0 `[3]` | `c9-12 r1-6` · r0 `[3]` | unchanged |
+
+Area: 8+8+8+12+6+6+24 = **72 = 12 × 6** ✓ — invariant holds, tiling re-verified
+exhaustive (72/72 tracks, zero overlaps).
+
+**What survives**
+
+- The **pinched diagonal shell** — TL (A `[1]`) and BR (F `[3]`) stay square,
+  TR and BL rounded. The wedge aimed down the top-right→bottom-left diagonal is
+  intact.
+- The **three-cell middle column** — D over E1/E2, one shared mask, forking into
+  two near the baseline. That reading is unchanged.
+- The **left-column mirror** — A/B/C still read as three stacked bars with
+  visible boundaries; only the right slab's silhouette is unchanged.
+
+**What changes**
+
+1. **The fork moves up.** The middle column no longer fuses for 4 rows and
+   splits at the canvas baseline (r5); it fuses for 3 rows and splits at **r4**,
+   one sixth of canvas height above the bottom. Visually the fork sits low but
+   not at the floor — the two lower blocks now read as taller than the band
+   above them.
+2. **The hidden seam is retired as an instance.** §4.2's device depended on all
+   four corners at the shared edge being squared, so the boundary showed **0
+   cream**. The built arrangement squares only two of the four (E1's TL and
+   E2's TR), so the D-over-E boundary now shows notches at the two rounded
+   inner corners — E1's TR and E2's TL — and is visible. The device remains
+   valid vocabulary (`spec-bento.md` §9.1); it is simply not exercised here
+   any more.
+3. **Square-corner count 9 → 5 of 28.** A lower count means a more rounded
+   composition overall: the middle column is now boxed by rounded corners on
+   seven of its twelve sides rather than fused flush into its neighbours.
+
+The spec is authoritative for the built state (`spec-bento.md` §9.1 and §13);
+this section preserves the *reference* measurement and records the delta.

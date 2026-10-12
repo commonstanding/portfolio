@@ -169,13 +169,13 @@ All windows stay in register because every cell renders the same canvas-sized im
 ┌───────────────┬───────────────┬───────────────┐
 │      A        │               │               │
 │  c1-4 r1-2    │      D        │       F       │
-├───────────────┤  c5-8 r1-4    │  c9-12 r1-6   │
+├───────────────┤  c5-8 r1-3    │  c9-12 r1-6   │
 │      B        │               │               │
-│  c1-4 r3-4    │               │               │
-│               ├───────┬───────┤               │
-├───────────────┤   E1  │   E2  │               │
-│      C        │ c5-6  │ c7-8  │               │
-│  c1-4 r5-6    │ r5-6  │ r5-6  │               │
+│  c1-4 r3-4    ├───────┬───────┤               │
+│               │   E1  │   E2  │               │
+├───────────────┤ c5-6  │ c7-8  │               │
+│      C        │ r4-6  │ r4-6  │               │
+│  c1-4 r5-6    │       │       │               │
 └───────────────┴───────┴───────┴───────────────┘
 ```
 
@@ -184,33 +184,36 @@ All windows stay in register because every cell renders the same canvas-sized im
 | A | `c1-4 r1-2` | field | mask | r0: [1]; carries the alt |
 | B | `c1-4 r3-4` | field | mask | all corners rounded |
 | C | `c1-4 r5-6` | field | mask | r0: [3] |
-| D | `c5-8 r1-4` | field | mask | r0: [3,4] — 2×3 visible units |
-| E1 | `c5-6 r5-6` | block | mask | r0: [1,2] |
-| E2 | `c7-8 r5-6` | block | mask | r0: [1,2] |
+| D | `c5-8 r1-3` | field | mask | all corners rounded |
+| E1 | `c5-6 r4-6` | block | mask | r0: [1] |
+| E2 | `c7-8 r4-6` | block | mask | r0: [2] |
 | F | `c9-12 r1-6` | field (full-height) | mask | r0: [3] |
 
-Total cell area: 8+8+8+16+4+4+24 = **72 = 12 × 6** ✓
+Total cell area: 8+8+8+12+6+6+24 = **72 = 12 × 6** ✓
 
 This is the reference01 hero geometry adopted on 07/10/2026 — reproduced in
-`docs/analysis-reference01-hero.md` (cream-mask IoU 0.716, 19/19 notches). Three
-things make it the spec's richest worked example:
+`docs/analysis-reference01-hero.md` (cream-mask IoU 0.716, 19/19 notches). The
+canvas and three-cell middle column are held; the corner arrangement and the
+D/E row split were revised on 10/10/2026 (§13). Three things make it the spec's
+richest worked example:
 
 1. **First live per-canvas ratio override.** The unit is sub-square
    (`--bento-unit-ratio: 0.772`), which buys the 2.59 : 1 letterbox band from a
    6 × 3 visible rhythm (§3.2).
-2. **First live fractional-row substrate.** Cell D spans 2 columns × 3 rows of
-   the visible rhythm = 1.5 units tall, so the canvas is declared **12 × 6**
+2. **First live fractional-row substrate.** The middle column forks at **r4**,
+   mid-row in the visible 3-row rhythm, so the canvas is declared **12 × 6**
    (not 6 × 3) and every cell uses integer tracks. No fractional coordinates
    (§2.1).
 3. **Two compositional devices**, both pure vocabulary (no new terms):
    - *Pinched diagonal shell* — the canvas silhouette is square at **TL** (A
      r0 [1]) and **BR** (F r0 [3]), rounded at TR and BL. Two opposite square
      corners read as a wedge aimed down the top-right→bottom-left diagonal.
-   - *Hidden seam* — D, E1 and E2 meet along the r4/r5 line with all four
-     corners squared (D [3,4], E1/E2 [1,2]). In a flush mask, a boundary is
-     only visible where a corner is rounded, so that seam shows **0 cream** and
-     the middle column reads as one image that forks into two only at the
-     baseline. Squared corners are how a tile declines to announce itself.
+   - *A three-cell column that forks low* — D sits above E1/E2, and the fork
+     happens only at the r4 line, near the baseline, so the middle column reads
+     as one image until it splits. A flush mask shows a boundary only where a
+     corner is rounded, and here only E1's TL and E2's TR are squared — the
+     single square corner at each side of the fork. Every remaining corner is
+     rounded, so the fork announces itself at the baseline and nowhere else.
 
 *The 12 × 4 / area-48 mega-column packing this section previously documented was
 superseded by the reference01 geometry above (adoption decision `20261007-001`,
@@ -365,6 +368,7 @@ wins on divergence.
 | 07/10/2026 | skill | Media-strip worked example synced to 12×6 | Skill must track the spec (§13); carried the superseded 12×4 packing. |
 | 10/10/2026 | §3.2, §9.1, §12 | Media-strip unit squared then **reverted to 0.772 same day** | Dale first asked for row height = column width, then rolled it back within the session. The squaring commit (`90a1e31`) was reverted; the reference01 sub-square unit stands. Net effect on §9.1 and §12: none. Re-measurement at 1440/1280/1024/390px was kept — it added per-viewport benefits figures and showed the old "324px vs 198.8px at 1280px" evidence matched at 1280px only, never verified per viewport. |
 | 10/10/2026 | §7 | Card content fits its slot (`box-sizing: border-box`) | No global box-sizing rule, so `block-size: 100%` set the content box and the card's own padding was added on top — the work-gallery label rendered 309px inside a 237px canvas (+72px). Measured after: label 237/237, intro 158/158, cards 79/79. **Kept** (independent of the unit revert). |
+| 10/10/2026 | §9.1 | Corner arrangement and middle-column row split revised | Dale specified all seven cells' radii. Canvas and three-cell middle column are held; what changed is the corner arrangement and where the middle column forks. **D** `c5-8 r1-4` → `c5-8 r1-3` (r0 `[3,4]` → `[]`); **E1** `c5-6 r5-6` → `c5-6 r4-6` (r0 `[1,2]` → `[1]`); **E2** `c7-8 r5-6` → `c7-8 r4-6` (r0 `[1,2]` → `[2]`); **A** keeps `r0: [1]` (TL pinch), **B**, **C** `[3]`, **F** `[3]` unchanged. Two consequences: the *hidden seam* device is **retired** as an instance — the fork now lands at r4, low in the r4/r5 row, rather than fusing a 4-square boundary; and the square-corner count drops **9 → 5 of 28**. The pinched diagonal shell survives (TL + BR still square). Area invariant holds: `8+8+8+12+6+6+24 = 72 = 12 × 6`; tiling re-verified exhaustive 72/72, zero overlaps. `docs/analysis-reference01-hero.md` §4/§7–8 marked as the *reference* arrangement, superseded in the build. |
 
 **Open questions parked for Dale:** none outstanding. `20261006-002` (tablet cell maps)
 awaits design sign-off on the three per-section 6-track maps.

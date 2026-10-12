@@ -18,11 +18,17 @@
   --global-color-cream-200: #e8e1d1;
   --global-color-cream-300: #d9d0bb;
 
-  --global-color-orange-300: #f08a5f;
-  --global-color-orange-400: #ee7443;
-  --global-color-orange-500: #e8622c; /* brand accent in reference */
-  --global-color-orange-600: #c94e1f;
+  /* Orange ramp — darkened 11/10/2026 for WCAG 2.2 AA (SC 1.4.3).
+     The reference's cream-on-orange (#faf7f0 on #e8622c) measures 3.16:1,
+     under the 4.5:1 body-text floor. The ramp shifts so the brand step
+     carries cream text at AA; 300 and 400 are decorative-only. */
+  --global-color-orange-300: #f08a5f; /* decorative — 7.18:1 on ink-900 */
+  --global-color-orange-400: #d15828; /* decorative — 3.82:1 on cream-50 */
+  --global-color-orange-500: #ae4a21; /* brand accent — 5.16:1 on cream-50 */
+  --global-color-orange-600: #8b3b1a; /* brand strong — 7.17:1 on cream-50 */
 
+  --global-color-ink-500: #827d70; /* control boundary — 3.39:1 on cream-100 */
+  --global-color-ink-600: #6d685e; /* placeholder — 4.57:1 on cream-100 */
   --global-color-ink-700: #3d3831;
   --global-color-ink-800: #26221d;
   --global-color-ink-900: #1a1815; /* near-black cards / text */
@@ -126,8 +132,12 @@
   --color-bg-page: var(--global-color-cream-100);
   --color-bg-surface: var(--global-color-cream-50);
   --color-bg-brand: var(--global-color-orange-500);
-  --color-bg-brand-hover: var(--global-color-orange-400);
+  /* Hover darkens down the ramp. Lightening was the old behaviour, but the
+     lightest orange that clears 4.5:1 with cream text is the brand step
+     itself — there is no headroom above it. */
+  --color-bg-brand-hover: var(--global-color-orange-600);
   --color-bg-inverse: var(--global-color-ink-900);
+  --color-bg-inverse-hover: var(--global-color-ink-700);
   --color-bg-muted: var(--global-color-cream-200);
   /* --color-bg-backdrop deleted 06/10/2026 — full-bleed page, no backdrop
      (docs/spec-full-bleed-page.md §3). */
@@ -139,9 +149,13 @@
   --color-text-on-brand: var(--global-color-cream-50);
   --color-text-on-inverse: var(--global-color-cream-100);
   --color-text-accent: var(--global-color-orange-500);
+  --color-text-placeholder: var(--global-color-ink-600);
 
   /* Borders */
+  /* Decorative hairlines (rules, dividers) — exempt from SC 1.4.11. */
   --color-border-subtle: var(--global-color-cream-300);
+  /* Boundaries of interactive controls — SC 1.4.11 requires 3:1. */
+  --color-border-control: var(--global-color-ink-500);
   --color-border-strong: var(--global-color-ink-900);
   --color-border-focus: var(--global-color-orange-500);
 
@@ -223,9 +237,19 @@
   --color-bg-page: var(--global-color-ink-900);
   --color-bg-surface: var(--global-color-ink-800);
   --color-bg-muted: var(--global-color-ink-700);
+  /* Inverse flips with the theme. Previously --color-bg-inverse stayed
+     ink-900 while --color-text-on-inverse was overridden to ink-900 —
+     1.00:1, so every inverse surface was invisible in dark mode. */
+  --color-bg-inverse: var(--global-color-cream-100);
+  --color-bg-inverse-hover: var(--global-color-cream-300);
   --color-text-body: var(--global-color-cream-100);
   --color-text-heading: var(--global-color-cream-50);
   --color-text-muted: var(--global-color-cream-200);
   --color-text-on-inverse: var(--global-color-ink-900);
+  --color-text-placeholder: var(--global-color-cream-200);
+  /* Accent must lighten on a dark page: orange-500 is 4.73:1 on ink-900,
+     passing but with no margin for the small text it is used on. */
+  --color-text-accent: var(--global-color-orange-300);
   --color-border-subtle: var(--global-color-ink-700);
+  --color-border-focus: var(--global-color-orange-300);
 }
