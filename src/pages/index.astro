@@ -5,7 +5,9 @@
 import '../styles/tokens.css';
 import Bento, { type BentoCell } from '../components/Bento.astro';
 import SearchBar from '../components/patterns/SearchBar.astro';
+import ContactAI from '../components/patterns/ContactAI.astro';
 import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
 import GridOverlay from '../components/GridOverlay.astro';
 
 const nav = [
@@ -14,6 +16,10 @@ const nav = [
   { label: 'Themes', href: '#themes' },
   { label: 'Services', href: '#process' },
 ];
+
+// Confirmed against the archived portfolio's LINK_TEST_REPORT.md and seo-audit.md,
+// both of which list this exact URL as the verified LinkedIn link.
+const LINKEDIN_URL = 'https://www.linkedin.com/in/dalerogers';
 
 const benefits = [
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit sed.',
@@ -36,13 +42,12 @@ const benefitsCells: BentoCell[] = [
 // Hero media strip — Bento canvas (docs/spec-bento.md §9.1):
 // 12 cols × 6 rows, unit ratio 0.772, flush, mask finish. ONE shared image
 // exposed through 7 clip-mask windows; cell A carries the alt.
-// Substrate is 12×6 (not 6×3) because cell D spans 2 cols × 3 rows of the
+// Substrate is 12×6 (not 6×3) because the middle cells split mid-row of the
 // visible rhythm — a fractional row forces the finer substrate (spec §2.1).
-// Two compositional devices: a pinched diagonal shell (square at canvas TL
-// and BR) and a hidden seam (D/E1/E2 all-square at their shared edge, so the
-// middle column reads as one image that forks only near the baseline).
-// Geometry reproduced from reference01 — docs/analysis-reference01-hero.md.
-// Total cell area: 8+8+8+16+4+4+24 = 72 = 12 × 6 ✓
+// Canvas silhouette keeps reference01's pinched diagonal (square at TL and
+// BR). Cell D now ends at r3 and the E1/E2 fork starts at r4; corner
+// arrangement revised 10/10/2026 (docs/analysis-reference01-hero.md §9).
+// Total cell area: 8+8+8+12+6+6+24 = 72 = 12 × 6 ✓
 const MEDIA_STRIP_SRC =
   'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1600&q=80&auto=format&fit=crop';
 const mediaStripCells: BentoCell[] = [
@@ -52,13 +57,13 @@ const mediaStripCells: BentoCell[] = [
   { c: [1, 4], r: [3, 4], finish: 'mask' },
   // C: field c1-4 r5-6, square BR
   { c: [1, 4], r: [5, 6], finish: 'mask', r0: [3] },
-  // D: field c5-8 r1-4 (2×3 visible units), square BR+BL (hidden seam top)
-  { c: [5, 8], r: [1, 4], finish: 'mask', r0: [3, 4] },
-  // E1: block c5-6 r5-6, square TL+TR (hidden seam bottom + split only at base)
-  { c: [5, 6], r: [5, 6], finish: 'mask', r0: [1, 2] },
-  // E2: block c7-8 r5-6, square TL+TR
-  { c: [7, 8], r: [5, 6], finish: 'mask', r0: [1, 2] },
-  // F: field c9-12 r1-6, square BR (canvas BR pinch)
+  // D: field c5-8 r1-3, all corners rounded
+  { c: [5, 8], r: [1, 3], finish: 'mask' },
+  // E1: block c5-6 r4-6, square TL
+  { c: [5, 6], r: [4, 6], finish: 'mask', r0: [1] },
+  // E2: block c7-8 r4-6, square TR
+  { c: [7, 8], r: [4, 6], finish: 'mask', r0: [2] },
+  // F: field c9-12 r1-6, square BR
   { c: [9, 12], r: [1, 6], finish: 'mask', r0: [3] },
 ];
 
@@ -156,7 +161,20 @@ const steps = [
           {nav.map((item) => <a href={item.href}>{item.label}</a>)}
         </nav>
         <div class="site-header__actions">
-          <Button variant="inverse" size="sm" href="#contact" aria-label="Get in touch" class="site-header__action">↗</Button>
+          <Button variant="inverse" size="md" href="#contact" aria-label="Get in touch" class="site-header__action">
+            <Icon name="mail" size="md" />
+          </Button>
+          <Button
+            variant="inverse"
+            size="md"
+            href={LINKEDIN_URL}
+            target="_blank"
+            rel="me noopener noreferrer"
+            aria-label="LinkedIn profile (opens in a new tab)"
+            class="site-header__action"
+          >
+            <Icon name="brand-linkedin" size="md" />
+          </Button>
         </div>
       </div>
     </header>
@@ -272,9 +290,11 @@ const steps = [
       <!-- ============ CONTACT ============ -->
       <section class="contact" id="contact" aria-labelledby="contact-title">
         <h2 id="contact-title">Work with me</h2>
-        <p class="contact__lede">Directly, or through your prime contractor.</p>
-        <Button variant="primary" size="lg" href="mailto:hello@dalerogers.com.au?subject=Project%20enquiry">Email me ↗</Button>
-        <a class="contact__email" href="mailto:hello@dalerogers.com.au">hello@dalerogers.com.au</a>
+        <p class="contact__lede">
+          Directly, or through your prime contractor. Talk it through on the right and the form
+          fills itself in, or skip straight to the form.
+        </p>
+        <ContactAI email="hello@dalerogers.com.au" />
         <p class="contact__meta">Founder, Common Standing · Canberra, Ngunnawal Country</p>
       </section>
     </main>
@@ -286,6 +306,15 @@ const steps = [
           <a href="#about">Lorem</a>
           <a href="#work">Ipsum</a>
           <a href="#contact">Dolor</a>
+          <a
+            class="site-footer__social"
+            href={LINKEDIN_URL}
+            target="_blank"
+            rel="me noopener noreferrer"
+          >
+            <Icon name="brand-linkedin" size="sm" />
+            LinkedIn<span class="visually-hidden"> (opens in a new tab)</span>
+          </a>
         </nav>
       </div>
     </footer>
@@ -345,6 +374,20 @@ const steps = [
 
   .skip-link:focus-visible {
     transform: translateY(0);
+  }
+
+  /* Visually hidden but available to assistive tech — used to append
+     "opens in a new tab" to new-window links without cluttering the design. */
+  .visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
   }
 
   /* SC 2.3.3 Animation from Interactions: honour the OS preference. */
@@ -455,7 +498,17 @@ const steps = [
     color: var(--color-text-accent);
   }
 
-  /* Reference header action: a small circular icon button, not a pill. */
+  /* Reference header actions: medium circular icon buttons, not pills.
+     2.5rem (40px) clears the 24px SC 2.5.8 floor with room to spare, and
+     the two buttons are separated by --spacing-gap-sm (12px) so the gap
+     itself exceeds the 24px target-size requirement. */
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-gap-sm);
+    flex-shrink: 0;
+  }
+
   .site-header__action {
     inline-size: 2.5rem;
     block-size: 2.5rem;
@@ -712,7 +765,6 @@ const steps = [
   .contact {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: var(--spacing-gap-lg);
     padding: var(--spacing-padding-xl);
     text-align: center;
@@ -727,14 +779,16 @@ const steps = [
     font-size: var(--type-h2);
   }
 
-  .contact__lede {
-    max-width: 44ch;
-    color: var(--color-text-muted);
+  .contact .contact-ai {
+    /* The two columns are left-aligned even though the section heading is
+       centred — centring form labels is a readability defect. */
+    text-align: start;
+    inline-size: 100%;
   }
 
-  .contact__email {
-    color: var(--color-text-heading);
-    text-underline-offset: 0.2em;
+  .contact__lede {
+    max-width: 56ch;
+    color: var(--color-text-muted);
   }
 
   .contact__meta {
@@ -774,6 +828,14 @@ const steps = [
 
   .site-footer__inner a:hover {
     color: var(--color-text-accent);
+  }
+
+  /* Footer social link: icon + visible text, so it reads as an outbound
+     action rather than blending into the plain nav row above it. */
+  .site-footer__social {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-gap-sm);
   }
 
   /* ---------- Responsive: horizontal grid collapse ---------- */
